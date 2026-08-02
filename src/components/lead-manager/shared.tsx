@@ -42,7 +42,7 @@ export const maskPhone = (phone: string, unmasked: boolean) =>
 
 export const maskEmail = (email: string, unmasked: boolean) => {
   if (unmasked) return email;
-  const [user, domain] = email.split("@");
+  const [user = "", domain = ""] = email.split("@");
   return `${user.slice(0, 2)}${"•".repeat(Math.max(3, user.length - 2))}@${domain}`;
 };
 
