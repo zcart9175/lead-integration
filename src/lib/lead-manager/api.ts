@@ -274,10 +274,14 @@ export const leadApi = {
     agent_id: string | null;
     scheduled_at: string;
     follow_up_type: string;
-    notes?: string | undefined;
+    notes?: string | null;
   }) {
     const row = unwrap(
-      await supabase.from("lead_follow_ups").insert(payload).select().single(),
+      await supabase
+        .from("lead_follow_ups")
+        .insert({ ...payload, notes: payload.notes ?? null })
+        .select()
+        .single(),
     );
     await supabase
       .from("leads")
