@@ -274,7 +274,7 @@ export const leadApi = {
     agent_id: string | null;
     scheduled_at: string;
     follow_up_type: string;
-    notes?: string;
+    notes?: string | undefined;
   }) {
     const row = unwrap(
       await supabase.from("lead_follow_ups").insert(payload).select().single(),
