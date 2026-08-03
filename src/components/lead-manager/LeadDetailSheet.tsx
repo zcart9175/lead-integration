@@ -336,7 +336,7 @@ export function LeadDetailSheet({
                             agent_id: lead.assigned_agent_id,
                             scheduled_at: new Date(followUpAt).toISOString(),
                             follow_up_type: followUpType,
-                            notes: note || undefined,
+                            notes: note || null,
                           }),
                         "Follow-up scheduled",
                       )
