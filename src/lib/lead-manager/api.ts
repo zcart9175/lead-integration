@@ -422,8 +422,142 @@ export const leadApi = {
   },
 
   async setAgentStatus(id: string, status: "online" | "busy" | "offline") {
-    return unwrap(
+    const row = unwrap(
       await supabase.from("lead_agents").update({ status }).eq("id", id).select().single(),
+    );
+    await writeAudit({
+      action: "Agent Availability Changed",
+      action_type: "update",
+      details: `${row.name} → ${status}`,
+    });
+    return row;
+  },
+
+  async setAgentPermissions(id: string, perms: { can_export?: boolean; can_unmask?: boolean }) {
+    const row = unwrap(
+      await supabase.from("lead_agents").update(perms).eq("id", id).select().single(),
+    );
+    await writeAudit({
+      action: "Agent Permissions Updated",
+      action_type: "update",
+      details: `${row.name}: ${Object.entries(perms)
+        .map(([k, v]) => `${k}=${v}`)
+        .join(", ")}`,
+    });
+    return row;
+  },
+
+  async listAssignments(limit = 40) {
+    return unwrap(
+      await supabase
+        .from("lead_assignments")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(limit),
+    );
+  },
+
+  async listRecentCommunications(limit = 40) {
+    return unwrap(
+      await supabase
+        .from("lead_communications")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(limit),
+    );
+  },
+
+  async listScores(limit = 120) {
+    return unwrap(
+      await supabase
+        .from("lead_scores")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(limit),
+    );
+  },
+
+  /**
+   * Real routing engine: picks the online agent with the smallest open lead load
+   * (falls back to busy agents), writes the assignment row and the audit trail.
+   */
+  async autoAssign(leadId: string) {
+    const agents = await leadApi.listAgents();
+    const open = unwrap(
+      await supabase
+        .from("leads")
+        .select("assigned_agent_id")
+        .not("status", "in", "(won,lost,spam)"),
+    );
+    const load = new Map<string, number>();
+    for (const row of open) {
+      if (row.assigned_agent_id)
+        load.set(row.assigned_agent_id, (load.get(row.assigned_agent_id) ?? 0) + 1);
+    }
+    const pool = agents.filter((a) => a.status === "online");
+    const candidates = (pool.length ? pool : agents.filter((a) => a.status === "busy")).filter(
+      (a) => (load.get(a.id) ?? 0) < a.capacity,
+    );
+    if (candidates.length === 0) throw new Error("No agent has spare capacity right now");
+    candidates.sort(
+      (a, b) =>
+        (load.get(a.id) ?? 0) / a.capacity - (load.get(b.id) ?? 0) / b.capacity ||
+        b.conversion_rate - a.conversion_rate,
+    );
+    const chosen = candidates[0]!;
+    return leadApi.assignLead(leadId, chosen.id, `Auto-routed to ${chosen.name} (load balancing)`);
+
+  },
+
+  async bulkAutoAssign(leadIds: string[]) {
+    let assigned = 0;
+    for (const id of leadIds) {
+      await leadApi.autoAssign(id);
+      assigned += 1;
+    }
+    return assigned;
+  },
+
+  async markSpam(leadId: string, reason: string) {
+    return leadApi.changeStatus(leadId, "spam", reason);
+  },
+
+  async resolveDuplicate(leadId: string, keep: boolean) {
+    return leadApi.updateLead(
+      leadId,
+      keep
+        ? { is_duplicate: false, duplicate_of: null, duplicate_score: 0 }
+        : { status: "spam", spam_reason: "Confirmed duplicate" },
+      keep ? "Duplicate Dismissed" : "Duplicate Merged",
+    );
+  },
+
+  async updateSettingText(key: string, value: string) {
+    return unwrap(
+      await supabase
+        .from("lead_settings")
+        .update({ value_text: value })
+        .eq("setting_key", key)
+        .select()
+        .single(),
+    );
+  },
+
+  async syncIntegration(key: string, name: string) {
+    await supabase.from("lead_integration_events").insert({
+      integration_key: key,
+      event: "manual_sync",
+      detail: `${name} sync triggered from the Lead Manager console`,
+      status: "success",
+    });
+    return unwrap(
+      await supabase
+        .from("lead_integrations")
+        .update({ last_sync_at: new Date().toISOString() })
+        .eq("integration_key", key)
+        .select()
+        .single(),
     );
   },
 };
+
