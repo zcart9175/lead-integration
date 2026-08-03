@@ -11,7 +11,7 @@ import {
   maskEmail,
   maskPhone,
   relTime,
-} from "../shared";
+} from "./shared";
 
 export function LeadTable({
   leads,
