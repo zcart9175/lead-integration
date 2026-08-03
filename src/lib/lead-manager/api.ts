@@ -505,7 +505,7 @@ export const leadApi = {
         b.conversion_rate - a.conversion_rate,
     );
     const chosen = candidates[0]!;
-    await supabase.rpc;
+    return leadApi.assignLead(leadId, chosen.id, `Auto-routed to ${chosen.name} (load balancing)`);
 
     return leadApi.assignLead(leadId, chosen.id, `Auto-routed to ${chosen.name} (load balancing)`);
   },
