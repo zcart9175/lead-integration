@@ -71,3 +71,12 @@ export const useLeadCommunications = (id: string | null) =>
     queryFn: () => leadApi.listCommunications(id as string),
     enabled: !!id,
   });
+
+export const useAssignments = () =>
+  useQuery({ queryKey: ["lm", "assignments"], queryFn: () => leadApi.listAssignments() });
+
+export const useRecentCommunications = () =>
+  useQuery({ queryKey: ["lm", "recent-comms"], queryFn: () => leadApi.listRecentCommunications() });
+
+export const useScores = () =>
+  useQuery({ queryKey: ["lm", "scores"], queryFn: () => leadApi.listScores() });
