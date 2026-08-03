@@ -507,7 +507,6 @@ export const leadApi = {
     const chosen = candidates[0]!;
     return leadApi.assignLead(leadId, chosen.id, `Auto-routed to ${chosen.name} (load balancing)`);
 
-    return leadApi.assignLead(leadId, chosen.id, `Auto-routed to ${chosen.name} (load balancing)`);
   },
 
   async bulkAutoAssign(leadIds: string[]) {
