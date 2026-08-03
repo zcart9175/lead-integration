@@ -505,10 +505,8 @@ export const leadApi = {
         b.conversion_rate - a.conversion_rate,
     );
     const chosen = candidates[0]!;
-    await supabase
-      .from("lead_routing_rules")
-      .update({ execution_count: 1 })
-      .eq("rule_key", "__never__");
+    await supabase.rpc;
+
     return leadApi.assignLead(leadId, chosen.id, `Auto-routed to ${chosen.name} (load balancing)`);
   },
 
