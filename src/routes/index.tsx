@@ -218,10 +218,10 @@ function LeadManagerPage() {
           ) : visible.length === 0 ? (
             <EmptyState title="No leads match this view" />
           ) : (
-            <div className="overflow-x-auto">
+            <div className="-mx-1 max-h-[70vh] overflow-auto rounded-xl border border-border/60">
               <Table>
-                <TableHeader>
-                  <TableRow>
+                <TableHeader className="sticky top-0 z-10 bg-surface-2/85 backdrop-blur-md">
+                  <TableRow className="hover:bg-transparent [&_th]:text-[11px] [&_th]:font-semibold [&_th]:uppercase [&_th]:tracking-[0.12em] [&_th]:text-muted-foreground">
                     <TableHead>Lead</TableHead>
                     <TableHead>Source</TableHead>
                     <TableHead>Status</TableHead>
@@ -233,12 +233,22 @@ function LeadManagerPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {visible.map((lead) => (
+                  {visible.map((lead, i) => (
                     <TableRow
                       key={lead.id}
-                      className="cursor-pointer"
+                      tabIndex={0}
+                      role="button"
+                      className="rise cursor-pointer border-border/50 transition-colors duration-200 hover:bg-primary/8 focus-visible:bg-primary/10"
+                      style={{ animationDelay: `${Math.min(i, 14) * 22}ms` }}
                       onClick={() => setSelected(lead)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setSelected(lead);
+                        }
+                      }}
                     >
+
                       <TableCell>
                         <p className="font-medium">{lead.name}</p>
                         <p className="text-xs text-muted-foreground">
