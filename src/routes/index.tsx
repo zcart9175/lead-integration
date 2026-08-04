@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Activity, Search, Target, TrendingUp, UserCheck } from "lucide-react";
+import { Activity, Clock, Search, Target, TrendingUp, UserCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -87,15 +87,26 @@ function LeadManagerPage() {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <aside className="hidden w-72 shrink-0 overflow-y-auto border-r border-sidebar-border bg-sidebar lg:block">
-        <div className="border-b border-sidebar-border px-5 py-4">
-          <p className="font-display text-lg font-semibold">Software Vala</p>
-          <p className="text-xs text-muted-foreground">Lead Manager</p>
+      <aside className="hidden w-72 shrink-0 overflow-y-auto border-r border-sidebar-border/80 bg-sidebar/80 backdrop-blur-xl lg:block">
+        <div className="sticky top-0 z-10 border-b border-sidebar-border/80 bg-sidebar/90 px-5 py-4 backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            <span className="gradient-brand ambient-glow flex size-9 items-center justify-center rounded-xl font-display text-sm font-bold text-primary-foreground">
+              SV
+            </span>
+            <div className="min-w-0">
+              <p className="truncate font-display text-base font-semibold tracking-tight">
+                Software Vala
+              </p>
+              <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <span className="status-dot text-success" /> Lead Manager
+              </p>
+            </div>
+          </div>
         </div>
         <nav className="space-y-5 px-3 py-4">
           {NAV_SECTIONS.map((s) => (
             <div key={s.id}>
-              <p className="px-2 pb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80">
                 {s.label}
               </p>
               <div className="space-y-0.5">
@@ -103,13 +114,18 @@ function LeadManagerPage() {
                   <div key={item.id}>
                     <button
                       onClick={() => setSection(item.id)}
-                      className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
+                      className={`group relative flex w-full items-center gap-2.5 overflow-hidden rounded-lg px-2.5 py-2 text-left text-sm transition-all duration-300 ${
                         section === item.id
-                          ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                          : "text-sidebar-foreground hover:bg-sidebar-accent"
+                          ? "bg-sidebar-primary/90 text-sidebar-primary-foreground shadow-[var(--elev-1)]"
+                          : "text-sidebar-foreground hover:translate-x-0.5 hover:bg-sidebar-accent/70"
                       }`}
                     >
-                      <item.icon className="size-4 shrink-0" />
+                      <span
+                        className={`absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-primary transition-opacity duration-300 ${
+                          section === item.id ? "opacity-100" : "opacity-0"
+                        }`}
+                      />
+                      <item.icon className="size-4 shrink-0 transition-transform duration-300 group-hover:scale-110" />
                       <span className="truncate">{item.label}</span>
                     </button>
                     {item.children && section.startsWith(item.id.split("_")[0] ?? "") ? (
@@ -118,7 +134,7 @@ function LeadManagerPage() {
                           <button
                             key={c.id}
                             onClick={() => setSection(c.id)}
-                            className={`block w-full truncate rounded px-2 py-1 text-left text-xs ${
+                            className={`block w-full truncate rounded px-2 py-1 text-left text-xs transition-all duration-200 hover:translate-x-0.5 ${
                               section === c.id
                                 ? "text-sidebar-primary-foreground bg-sidebar-accent"
                                 : "text-muted-foreground hover:text-sidebar-foreground"
@@ -137,23 +153,28 @@ function LeadManagerPage() {
         </nav>
       </aside>
 
-      <main className="flex-1 space-y-6 overflow-x-hidden p-6">
+      <main key={section} className="flex-1 space-y-6 overflow-x-hidden p-6">
         <SectionHeader
           title={sourceFilter?.label ?? titleFor(section)}
           description="Live data from the Software Vala lead database — every action is written back through the API."
           icon={Target}
           actions={
             <>
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+              <LiveClock />
+              <div className="group relative">
+                <Search className="pointer-events-none absolute left-2.5 top-2.5 size-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search leads…"
-                  className="w-64 pl-8"
+                  className="w-64 border-border/70 bg-surface-2/60 pl-8 backdrop-blur-md transition-all duration-300 focus-visible:w-72"
                 />
               </div>
-              <Button variant="secondary" onClick={() => exportLeadsCsv(visible)}>
+              <Button
+                variant="secondary"
+                className="lift sheen"
+                onClick={() => exportLeadsCsv(visible)}
+              >
                 Export CSV
               </Button>
             </>
@@ -169,16 +190,19 @@ function LeadManagerPage() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-7">
-          {PIPELINE_STAGES.map((s) => {
+          {PIPELINE_STAGES.map((s, i) => {
             const count = leads.filter((l) => l.status === s.id).length;
             return (
               <button
                 key={s.id}
                 onClick={() => setSection(`stage_${s.id === "follow_up" ? "followup" : s.id}`)}
-                className="stat-tile p-3 text-left transition-colors hover:bg-primary/15"
+                className="stat-tile lift sheen rise p-3.5 text-left"
+                style={{ animationDelay: `${i * 40}ms` }}
               >
-                <p className="text-xs text-muted-foreground">{s.label}</p>
-                <p className="font-display text-xl font-semibold">{count}</p>
+                <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                  {s.label}
+                </p>
+                <p className="mt-1 font-display text-xl font-semibold tracking-tight">{count}</p>
               </button>
             );
           })}
@@ -188,15 +212,16 @@ function LeadManagerPage() {
           title={`${visible.length} leads`}
           description="Click a row to open the full lead workspace: activity, assignment, follow-ups and conversion."
         >
+
           {isLoading ? (
             <LoadingRows rows={8} />
           ) : visible.length === 0 ? (
             <EmptyState title="No leads match this view" />
           ) : (
-            <div className="overflow-x-auto">
+            <div className="-mx-1 max-h-[70vh] overflow-auto rounded-xl border border-border/60">
               <Table>
-                <TableHeader>
-                  <TableRow>
+                <TableHeader className="sticky top-0 z-10 bg-surface-2/85 backdrop-blur-md">
+                  <TableRow className="hover:bg-transparent [&_th]:text-[11px] [&_th]:font-semibold [&_th]:uppercase [&_th]:tracking-[0.12em] [&_th]:text-muted-foreground">
                     <TableHead>Lead</TableHead>
                     <TableHead>Source</TableHead>
                     <TableHead>Status</TableHead>
@@ -208,12 +233,22 @@ function LeadManagerPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {visible.map((lead) => (
+                  {visible.map((lead, i) => (
                     <TableRow
                       key={lead.id}
-                      className="cursor-pointer"
+                      tabIndex={0}
+                      role="button"
+                      className="rise cursor-pointer border-border/50 transition-colors duration-200 hover:bg-primary/8 focus-visible:bg-primary/10"
+                      style={{ animationDelay: `${Math.min(i, 14) * 22}ms` }}
                       onClick={() => setSelected(lead)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setSelected(lead);
+                        }
+                      }}
                     >
+
                       <TableCell>
                         <p className="font-medium">{lead.name}</p>
                         <p className="text-xs text-muted-foreground">
@@ -267,4 +302,33 @@ function titleFor(section: string) {
     }
   }
   return "Lead Dashboard";
+}
+
+/** Executive top-bar widget: live local time, date and timezone. */
+function LiveClock() {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone.split("/").pop()?.replace("_", " ");
+
+  return (
+    <div className="premium-surface hidden items-center gap-3 rounded-xl px-3.5 py-2 md:flex">
+      <span className="relative z-[3] flex items-center gap-2 text-primary">
+        <Clock className="size-4" />
+        <span className="num text-sm font-semibold tabular-nums text-foreground">
+          {now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}
+        </span>
+      </span>
+      <span className="relative z-[3] border-l border-border/70 pl-3 text-[11px] leading-tight text-muted-foreground">
+        <span className="block">
+          {now.toLocaleDateString("en-IN", { weekday: "short", day: "2-digit", month: "short" })}
+        </span>
+        <span className="block">{tz}</span>
+      </span>
+    </div>
+  );
 }

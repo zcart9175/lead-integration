@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -46,6 +46,126 @@ export const maskEmail = (email: string, unmasked: boolean) => {
   return `${user.slice(0, 2)}${"•".repeat(Math.max(3, user.length - 2))}@${domain}`;
 };
 
+/* ------------------------------------------------------------------ *
+ * Motion primitives (presentation only)
+ * ------------------------------------------------------------------ */
+
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+    const onChange = () => setReduced(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return reduced;
+}
+
+/** Smoothly counts a numeric target up from its previous value. */
+function useCountUp(target: number, duration = 900) {
+  const reduced = usePrefersReducedMotion();
+  const [display, setDisplay] = useState(target);
+  const fromRef = useRef(target);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (reduced || !Number.isFinite(target)) {
+      setDisplay(target);
+      fromRef.current = target;
+      return;
+    }
+    const from = fromRef.current;
+    if (from === target) return;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 4);
+      setDisplay(from + (target - from) * eased);
+      if (t < 1) rafRef.current = requestAnimationFrame(tick);
+      else fromRef.current = target;
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      fromRef.current = target;
+    };
+  }, [target, duration, reduced]);
+
+  return display;
+}
+
+/**
+ * Renders a value with an animated counter when the value contains a number
+ * (e.g. "1,204", "₹4.2L", "38%"). Non-numeric nodes render untouched.
+ */
+function AnimatedValue({ value }: { value: ReactNode }) {
+  const text = typeof value === "string" || typeof value === "number" ? String(value) : null;
+  const match = text ? text.match(/-?[\d,.]*\d/) : null;
+  const raw = match ? Number(match[0].replace(/,/g, "")) : NaN;
+  const animated = useCountUp(Number.isFinite(raw) ? raw : 0);
+
+  if (!text || !match || !Number.isFinite(raw)) return <>{value}</>;
+
+  const decimals = (match[0].split(".")[1] ?? "").length;
+  const formatted = new Intl.NumberFormat("en-IN", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(animated);
+
+  return (
+    <>
+      {text.slice(0, match.index)}
+      <span className="num">{formatted}</span>
+      {text.slice((match.index ?? 0) + match[0].length)}
+    </>
+  );
+}
+
+/** Tiny inline sparkline. Purely decorative trend rendering of provided points. */
+export function Sparkline({
+  points,
+  className,
+  tone = "currentColor",
+}: {
+  points: number[];
+  className?: string;
+  tone?: string;
+}) {
+  const path = useMemo(() => {
+    if (points.length < 2) return { line: "", area: "" };
+    const min = Math.min(...points);
+    const max = Math.max(...points);
+    const span = max - min || 1;
+    const step = 100 / (points.length - 1);
+    const coords = points.map((p, i) => [i * step, 28 - ((p - min) / span) * 24 - 2] as const);
+    const line = coords.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(2)},${y.toFixed(2)}`).join(" ");
+    return { line, area: `${line} L100,30 L0,30 Z` };
+  }, [points]);
+
+  if (!path.line) return null;
+
+  return (
+    <svg
+      viewBox="0 0 100 30"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      className={cn("h-8 w-full", className)}
+    >
+      <path d={path.area} fill={tone} opacity={0.12} />
+      <path
+        d={path.line}
+        fill="none"
+        stroke={tone}
+        strokeWidth={1.75}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
+
 export function SectionHeader({
   title,
   description,
@@ -58,17 +178,21 @@ export function SectionHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-4">
-      <div className="flex items-start gap-3">
+    <div className="rise grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:flex-wrap sm:justify-between">
+      <div className="flex min-w-0 items-start gap-3.5">
         {Icon ? (
-          <span className="stat-tile flex size-11 items-center justify-center text-primary">
+          <span className="stat-tile ambient-glow float-soft flex size-12 shrink-0 items-center justify-center text-primary">
             <Icon className="size-5" />
           </span>
         ) : null}
-        <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight">{title}</h1>
+        <div className="min-w-0">
+          <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-[1.75rem]">
+            {title}
+          </h1>
           {description ? (
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{description}</p>
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+              {description}
+            </p>
           ) : null}
         </div>
       </div>
@@ -83,12 +207,16 @@ export function StatCard({
   hint,
   icon: Icon,
   tone = "primary",
+  series,
+  trend,
 }: {
   label: string;
   value: ReactNode;
   hint?: ReactNode;
   icon?: LucideIcon;
   tone?: "primary" | "success" | "warning" | "destructive" | "info";
+  series?: number[];
+  trend?: number;
 }) {
   const toneClass = {
     primary: "text-primary",
@@ -97,14 +225,50 @@ export function StatCard({
     destructive: "text-destructive",
     info: "text-info",
   }[tone];
+
   return (
-    <Card className="gap-0 border-border bg-surface p-5">
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-        {Icon ? <Icon className={cn("size-4", toneClass)} /> : null}
+    <Card className="premium-surface lift sheen rise group gap-0 border-0 p-5">
+      <div className="relative z-[3] flex items-start justify-between gap-3">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          {label}
+        </p>
+        {Icon ? (
+          <span
+            className={cn(
+              "stat-tile flex size-8 items-center justify-center transition-transform duration-300 group-hover:scale-110",
+              toneClass,
+            )}
+          >
+            <Icon className="size-4" />
+          </span>
+        ) : null}
       </div>
-      <p className="mt-3 font-display text-2xl font-semibold tracking-tight">{value}</p>
-      {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
+
+      <p className="relative z-[3] mt-3 font-display text-[1.75rem] font-semibold leading-none tracking-tight">
+        <AnimatedValue value={value} />
+      </p>
+
+      <div className="relative z-[3] mt-1.5 flex items-center gap-2">
+        {typeof trend === "number" ? (
+          <span
+            className={cn(
+              "num rounded-full border px-1.5 py-0.5 text-[11px] font-medium",
+              trend >= 0
+                ? "border-success/30 bg-success/10 text-success"
+                : "border-destructive/30 bg-destructive/10 text-destructive",
+            )}
+          >
+            {trend >= 0 ? "▲" : "▼"} {Math.abs(trend)}%
+          </span>
+        ) : null}
+        {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+      </div>
+
+      {series && series.length > 1 ? (
+        <div className={cn("relative z-[3] mt-3 -mb-1", toneClass)}>
+          <Sparkline points={series} />
+        </div>
+      ) : null}
     </Card>
   );
 }
@@ -123,19 +287,19 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <Card className={cn("gap-0 border-border bg-surface p-0", className)}>
+    <Card className={cn("premium-surface rise gap-0 border-0 p-0", className)}>
       {title ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
-          <div>
-            <h2 className="font-display text-base font-semibold">{title}</h2>
+        <div className="relative z-[3] flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-5 py-4">
+          <div className="min-w-0">
+            <h2 className="font-display text-base font-semibold tracking-tight">{title}</h2>
             {description ? (
-              <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+              <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{description}</p>
             ) : null}
           </div>
           {actions}
         </div>
       ) : null}
-      <div className="p-5">{children}</div>
+      <div className="relative z-[3] p-5">{children}</div>
     </Card>
   );
 }
@@ -151,9 +315,18 @@ const statusTone: Record<LeadStatus, string> = {
   spam: "bg-muted text-muted-foreground border-border",
 };
 
+const livePulse = new Set<LeadStatus>(["new", "negotiation", "follow_up"]);
+
 export function StatusBadge({ status }: { status: LeadStatus }) {
   return (
-    <Badge variant="outline" className={cn("font-medium", statusTone[status])}>
+    <Badge
+      variant="outline"
+      className={cn(
+        "gap-1.5 font-medium backdrop-blur-sm transition-colors duration-200",
+        statusTone[status],
+      )}
+    >
+      <span className={cn("size-1.5 rounded-full bg-current", livePulse.has(status) && "status-dot")} />
       {STATUS_LABEL[status]}
     </Badge>
   );
@@ -168,7 +341,10 @@ const priorityTone: Record<LeadPriority, string> = {
 
 export function PriorityBadge({ priority }: { priority: LeadPriority }) {
   return (
-    <Badge variant="outline" className={cn("capitalize", priorityTone[priority])}>
+    <Badge
+      variant="outline"
+      className={cn("capitalize backdrop-blur-sm", priorityTone[priority])}
+    >
       {priority}
     </Badge>
   );
@@ -182,7 +358,8 @@ const tempTone: Record<LeadTemperature, string> = {
 
 export function TemperatureBadge({ temperature }: { temperature: LeadTemperature }) {
   return (
-    <Badge variant="outline" className={cn("capitalize", tempTone[temperature])}>
+    <Badge variant="outline" className={cn("gap-1.5 capitalize backdrop-blur-sm", tempTone[temperature])}>
+      <span className={cn("size-1.5 rounded-full bg-current", temperature === "hot" && "status-dot")} />
       {temperature}
     </Badge>
   );
@@ -194,10 +371,13 @@ export function ScoreBar({ score, label }: { score: number; label?: string }) {
     <div className="min-w-24">
       <div className="flex items-center justify-between text-xs">
         <span className="text-muted-foreground">{label ?? "Score"}</span>
-        <span className="font-mono font-medium">{score}</span>
+        <span className="num font-medium">{score}</span>
       </div>
-      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
-        <div className={cn("h-full rounded-full", tone)} style={{ width: `${score}%` }} />
+      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted/70 shadow-inner">
+        <div
+          className={cn("h-full rounded-full transition-[width] duration-700 ease-out", tone)}
+          style={{ width: `${score}%`, boxShadow: "0 0 10px currentColor" }}
+        />
       </div>
     </div>
   );
@@ -205,8 +385,14 @@ export function ScoreBar({ score, label }: { score: number; label?: string }) {
 
 export function EmptyState({ title, description }: { title: string; description?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border px-6 py-12 text-center">
-      <p className="font-medium">{title}</p>
+    <div className="rise flex flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-muted/10 px-6 py-14 text-center">
+      <span className="stat-tile float-soft mb-3 flex size-12 items-center justify-center text-primary">
+        <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.6-3.6" strokeLinecap="round" />
+        </svg>
+      </span>
+      <p className="font-display font-medium">{title}</p>
       {description ? (
         <p className="mt-1 max-w-md text-sm text-muted-foreground">{description}</p>
       ) : null}
@@ -218,7 +404,11 @@ export function LoadingRows({ rows = 5 }: { rows?: number }) {
   return (
     <div className="space-y-2">
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="h-11 animate-pulse rounded-md bg-muted/60" />
+        <div
+          key={i}
+          className="shimmer h-11 rounded-lg"
+          style={{ animationDelay: `${i * 90}ms` }}
+        />
       ))}
     </div>
   );

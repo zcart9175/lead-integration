@@ -64,27 +64,48 @@ export function LeadTable({
   const rightAligned = new Set(["value", "created", "followup"]);
 
   return (
-    <div className="overflow-x-auto">
+    <div className="-mx-1 max-h-[70vh] overflow-auto rounded-xl border border-border/60">
       <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Lead</TableHead>
+        <TableHeader className="sticky top-0 z-10 bg-surface-2/85 backdrop-blur-md">
+          <TableRow className="hover:bg-transparent">
+            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              Lead
+            </TableHead>
             {columns.map((c) => (
-              <TableHead key={c} className={rightAligned.has(c) ? "text-right" : undefined}>
+              <TableHead
+                key={c}
+                className={`text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground ${
+                  rightAligned.has(c) ? "text-right" : ""
+                }`}
+              >
                 {head[c]}
               </TableHead>
             ))}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {leads.map((lead) => (
-            <TableRow key={lead.id} className="cursor-pointer" onClick={() => onSelect(lead)}>
+          {leads.map((lead, i) => (
+            <TableRow
+              key={lead.id}
+              tabIndex={0}
+              role="button"
+              className="rise cursor-pointer border-border/50 transition-colors duration-200 hover:bg-primary/8 focus-visible:bg-primary/10"
+              style={{ animationDelay: `${Math.min(i, 14) * 22}ms` }}
+              onClick={() => onSelect(lead)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelect(lead);
+                }
+              }}
+            >
               <TableCell className="min-w-52">
-                <p className="font-medium">{lead.name}</p>
+                <p className="font-medium tracking-tight">{lead.name}</p>
                 <p className="text-xs text-muted-foreground">
                   {lead.company ?? lead.industry} • {[lead.city, lead.state].filter(Boolean).join(", ")}
                 </p>
               </TableCell>
+
               {columns.map((c) => {
                 switch (c) {
                   case "source":
