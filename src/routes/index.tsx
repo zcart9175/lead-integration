@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Activity, Search, Target, TrendingUp, UserCheck } from "lucide-react";
+import { Activity, Clock, Search, Target, TrendingUp, UserCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -302,4 +302,33 @@ function titleFor(section: string) {
     }
   }
   return "Lead Dashboard";
+}
+
+/** Executive top-bar widget: live local time, date and timezone. */
+function LiveClock() {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone.split("/").pop()?.replace("_", " ");
+
+  return (
+    <div className="premium-surface hidden items-center gap-3 rounded-xl px-3.5 py-2 md:flex">
+      <span className="relative z-[3] flex items-center gap-2 text-primary">
+        <Clock className="size-4" />
+        <span className="num text-sm font-semibold tabular-nums text-foreground">
+          {now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}
+        </span>
+      </span>
+      <span className="relative z-[3] border-l border-border/70 pl-3 text-[11px] leading-tight text-muted-foreground">
+        <span className="block">
+          {now.toLocaleDateString("en-IN", { weekday: "short", day: "2-digit", month: "short" })}
+        </span>
+        <span className="block">{tz}</span>
+      </span>
+    </div>
+  );
 }
