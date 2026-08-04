@@ -169,3 +169,230 @@
   background-color: color-mix(in oklab, var(--primary) 10%, transparent);
   border-radius: var(--radius-md);
 }
+
+/* ============================================================
+ * EXECUTIVE COMMAND CENTER — depth, light, motion layer
+ * Visual only. No token renames, no logic.
+ * ============================================================ */
+
+:root {
+  --elev-1: 0 1px 2px hsl(258 40% 4% / 0.4), 0 2px 6px -2px hsl(258 40% 4% / 0.35);
+  --elev-2: 0 2px 6px hsl(258 40% 4% / 0.45), 0 12px 28px -14px hsl(258 40% 4% / 0.65);
+  --elev-3: 0 4px 12px hsl(258 40% 4% / 0.5), 0 28px 60px -24px hsl(258 40% 4% / 0.8);
+  --glow-primary: 0 0 0 1px color-mix(in oklab, var(--primary) 30%, transparent),
+    0 12px 40px -18px color-mix(in oklab, var(--primary) 70%, transparent);
+  --sheen: linear-gradient(
+    100deg,
+    transparent 20%,
+    color-mix(in oklab, var(--foreground) 10%, transparent) 45%,
+    transparent 70%
+  );
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.42, 0.64, 1);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    letter-spacing: -0.011em;
+    background-image:
+      radial-gradient(900px 520px at 12% -8%, color-mix(in oklab, var(--primary) 14%, transparent), transparent 70%),
+      radial-gradient(760px 460px at 96% 0%, color-mix(in oklab, var(--chart-5) 10%, transparent), transparent 70%),
+      radial-gradient(1100px 700px at 50% 120%, color-mix(in oklab, var(--chart-2) 8%, transparent), transparent 70%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4 {
+    letter-spacing: -0.028em;
+  }
+
+  :focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--ring) 85%, transparent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 40%, transparent);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--foreground) 18%, transparent) transparent;
+  }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--foreground) 14%, transparent);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--foreground) 26%, transparent);
+    background-clip: content-box;
+  }
+
+  .font-mono, code, kbd {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@keyframes lm-sheen {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(220%); }
+}
+@keyframes lm-rise {
+  from { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.995); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes lm-pulse-ring {
+  0% { box-shadow: 0 0 0 0 currentColor; opacity: 0.55; }
+  70% { box-shadow: 0 0 0 7px transparent; opacity: 0; }
+  100% { box-shadow: 0 0 0 0 transparent; opacity: 0; }
+}
+@keyframes lm-shimmer {
+  0% { background-position: -320px 0; }
+  100% { background-position: 320px 0; }
+}
+@keyframes lm-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* Premium multi-layer surface with ambient light + hairline highlight */
+@utility premium-surface {
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in oklab, var(--surface-2) 92%, transparent) 0%,
+      color-mix(in oklab, var(--surface) 96%, transparent) 55%,
+      color-mix(in oklab, var(--background) 88%, transparent) 100%
+    );
+  border: 1px solid color-mix(in oklab, var(--foreground) 9%, transparent);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--elev-2);
+  backdrop-filter: blur(14px) saturate(130%);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--foreground) 16%, transparent),
+      transparent 45%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+  }
+}
+
+@utility lift {
+  transition:
+    transform 0.35s var(--ease-out-quint),
+    box-shadow 0.35s var(--ease-out-quint),
+    border-color 0.35s var(--ease-out-quint);
+  will-change: transform;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--elev-3);
+    border-color: color-mix(in oklab, var(--primary) 32%, transparent);
+  }
+
+  &:active {
+    transform: translateY(-1px) scale(0.995);
+  }
+}
+
+@utility sheen {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--sheen);
+    transform: translateX(-120%);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  &:hover::after {
+    animation: lm-sheen 0.95s var(--ease-out-quint);
+  }
+}
+
+@utility rise {
+  animation: lm-rise 0.5s var(--ease-out-quint) both;
+}
+
+@utility ambient-glow {
+  box-shadow: var(--glow-primary);
+}
+
+@utility shimmer {
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--muted) 70%, transparent) 0%,
+    color-mix(in oklab, var(--foreground) 8%, transparent) 50%,
+    color-mix(in oklab, var(--muted) 70%, transparent) 100%
+  );
+  background-size: 320px 100%;
+  background-repeat: no-repeat;
+  animation: lm-shimmer 1.35s linear infinite;
+}
+
+@utility status-dot {
+  position: relative;
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    animation: lm-pulse-ring 2s var(--ease-out-quint) infinite;
+  }
+}
+
+@utility float-soft {
+  animation: lm-float 6s ease-in-out infinite;
+}
+
+@utility num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
