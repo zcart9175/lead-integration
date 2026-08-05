@@ -17,6 +17,22 @@ import { useAgents, useLeads } from "@/lib/lead-manager/queries";
 import type { Lead, LeadStatus } from "@/lib/lead-manager/types";
 import { PIPELINE_STAGES } from "@/lib/lead-manager/types";
 import { LeadDetailSheet } from "@/components/lead-manager/LeadDetailSheet";
+import { ActionsScreen } from "@/components/lead-manager/screens/ActionsScreen";
+import { AlertsScreen } from "@/components/lead-manager/screens/AlertsScreen";
+import { AllLeadsScreen } from "@/components/lead-manager/screens/AllLeadsScreen";
+import { AutomationScreen } from "@/components/lead-manager/screens/AutomationScreen";
+import { CaptureScreen } from "@/components/lead-manager/screens/CaptureScreen";
+import { EscalationsScreen } from "@/components/lead-manager/screens/EscalationsScreen";
+import { IntegrationsScreen } from "@/components/lead-manager/screens/IntegrationsScreen";
+import { OverviewScreen } from "@/components/lead-manager/screens/OverviewScreen";
+import { PipelineScreen } from "@/components/lead-manager/screens/PipelineScreen";
+import { QualificationScreen } from "@/components/lead-manager/screens/QualificationScreen";
+import { ReportsScreen } from "@/components/lead-manager/screens/ReportsScreen";
+import { SecurityScreen } from "@/components/lead-manager/screens/SecurityScreen";
+import { SettingsScreen } from "@/components/lead-manager/screens/SettingsScreen";
+import { SourcesScreen } from "@/components/lead-manager/screens/SourcesScreen";
+import { SpamScreen } from "@/components/lead-manager/screens/SpamScreen";
+import { TeamScreen } from "@/components/lead-manager/screens/TeamScreen";
 import {
   EmptyState,
   LoadingRows,
@@ -47,6 +63,8 @@ export const Route = createFileRoute("/")({
         content:
           "Real-time lead pipeline, AI scoring, routing rules, agent performance and conversion analytics.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: LeadManagerPage,
@@ -181,106 +199,16 @@ function LeadManagerPage() {
           }
         />
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-          <StatCard label="Total leads" value={num(stats.total)} icon={Target} />
-          <StatCard label="Hot leads" value={num(stats.hot)} icon={TrendingUp} tone="destructive" />
-          <StatCard label="Won" value={num(stats.won)} icon={UserCheck} tone="success" />
-          <StatCard label="Won value" value={inr(stats.value)} icon={Activity} tone="success" />
-          <StatCard label="Conversion" value={`${stats.conversion}%`} icon={TrendingUp} tone="info" />
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-7">
-          {PIPELINE_STAGES.map((s, i) => {
-            const count = leads.filter((l) => l.status === s.id).length;
-            return (
-              <button
-                key={s.id}
-                onClick={() => setSection(`stage_${s.id === "follow_up" ? "followup" : s.id}`)}
-                className="stat-tile lift sheen rise p-3.5 text-left"
-                style={{ animationDelay: `${i * 40}ms` }}
-              >
-                <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-                  {s.label}
-                </p>
-                <p className="mt-1 font-display text-xl font-semibold tracking-tight">{count}</p>
-              </button>
-            );
-          })}
-        </div>
-
-        <Panel
-          title={`${visible.length} leads`}
-          description="Click a row to open the full lead workspace: activity, assignment, follow-ups and conversion."
-        >
-
-          {isLoading ? (
-            <LoadingRows rows={8} />
-          ) : visible.length === 0 ? (
-            <EmptyState title="No leads match this view" />
-          ) : (
-            <div className="-mx-1 max-h-[70vh] overflow-auto rounded-xl border border-border/60">
-              <Table>
-                <TableHeader className="sticky top-0 z-10 bg-surface-2/85 backdrop-blur-md">
-                  <TableRow className="hover:bg-transparent [&_th]:text-[11px] [&_th]:font-semibold [&_th]:uppercase [&_th]:tracking-[0.12em] [&_th]:text-muted-foreground">
-                    <TableHead>Lead</TableHead>
-                    <TableHead>Source</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Agent</TableHead>
-                    <TableHead>AI score</TableHead>
-                    <TableHead className="text-right">Deal value</TableHead>
-                    <TableHead className="text-right">Created</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {visible.map((lead, i) => (
-                    <TableRow
-                      key={lead.id}
-                      tabIndex={0}
-                      role="button"
-                      className="rise cursor-pointer border-border/50 transition-colors duration-200 hover:bg-primary/8 focus-visible:bg-primary/10"
-                      style={{ animationDelay: `${Math.min(i, 14) * 22}ms` }}
-                      onClick={() => setSelected(lead)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          setSelected(lead);
-                        }
-                      }}
-                    >
-
-                      <TableCell>
-                        <p className="font-medium">{lead.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {lead.company ?? lead.email} • {lead.city}
-                        </p>
-                      </TableCell>
-                      <TableCell className="text-sm">{lead.sub_source}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={lead.status as LeadStatus} />
-                      </TableCell>
-                      <TableCell>
-                        <PriorityBadge priority={lead.priority} />
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {agents.find((a) => a.id === lead.assigned_agent_id)?.name ?? "Unassigned"}
-                      </TableCell>
-                      <TableCell>
-                        <ScoreBar score={lead.ai_score} />
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-sm">
-                        {inr(lead.deal_value)}
-                      </TableCell>
-                      <TableCell className="text-right text-xs text-muted-foreground">
-                        {relTime(lead.created_at)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </Panel>
+        <Screen
+          screen={screen}
+          section={section}
+          sourceFilter={sourceFilter}
+          visible={visible}
+          leads={leads}
+          agents={agents}
+          isLoading={isLoading}
+          onSelect={setSelected}
+        />
       </main>
 
       <LeadDetailSheet
@@ -291,6 +219,30 @@ function LeadManagerPage() {
       <Toaster position="top-right" />
     </div>
   );
+}
+
+function Screen({ screen, section, sourceFilter, visible, leads, agents, isLoading, onSelect }: {
+  screen: string; section: string; sourceFilter?: { source?: string; subSource?: string; label: string };
+  visible: Lead[]; leads: Lead[]; agents: ReturnType<typeof useAgents>["data"] extends (infer T)[] | undefined ? T[] : never;
+  isLoading: boolean; onSelect: (lead: Lead) => void;
+}) {
+  if (screen === "overview") return <OverviewScreen onSelect={onSelect} />;
+  if (screen === "allLeads") return <AllLeadsScreen onSelect={onSelect} />;
+  if (screen === "sources") return <SourcesScreen section={section} onSelect={onSelect} />;
+  if (screen === "capture") return <CaptureScreen onSelect={onSelect} />;
+  if (screen === "qualification") return <QualificationScreen section={section} onSelect={onSelect} />;
+  if (screen === "spam") return <SpamScreen onSelect={onSelect} />;
+  if (screen === "pipeline") return <PipelineScreen section={section} onSelect={onSelect} />;
+  if (screen === "actions") return <ActionsScreen section={section} onSelect={onSelect} />;
+  if (screen === "automation") return <AutomationScreen onSelect={onSelect} />;
+  if (screen === "team") return <TeamScreen />;
+  if (screen === "alerts") return <AlertsScreen section={section} onSelect={onSelect} />;
+  if (screen === "escalations") return <EscalationsScreen />;
+  if (screen === "reports") return <ReportsScreen />;
+  if (screen === "integrations") return <IntegrationsScreen />;
+  if (screen === "security") return <SecurityScreen />;
+  if (screen === "settings") return <SettingsScreen />;
+  return <Panel title={`${sourceFilter?.label ?? "Leads"} — ${visible.length}`}><div className="text-sm text-muted-foreground">{isLoading ? "Loading…" : `${leads.length} records loaded across ${agents.length} agents.`}</div></Panel>;
 }
 
 function titleFor(section: string) {
@@ -306,26 +258,27 @@ function titleFor(section: string) {
 
 /** Executive top-bar widget: live local time, date and timezone. */
 function LiveClock() {
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
+    setNow(new Date());
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
 
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone.split("/").pop()?.replace("_", " ");
+  const tz = now ? Intl.DateTimeFormat().resolvedOptions().timeZone.split("/").pop()?.replace("_", " ") : "Local";
 
   return (
     <div className="premium-surface hidden items-center gap-3 rounded-xl px-3.5 py-2 md:flex">
       <span className="relative z-[3] flex items-center gap-2 text-primary">
         <Clock className="size-4" />
         <span className="num text-sm font-semibold tabular-nums text-foreground">
-          {now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}
+          {now ? now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "--:--:--"}
         </span>
       </span>
       <span className="relative z-[3] border-l border-border/70 pl-3 text-[11px] leading-tight text-muted-foreground">
         <span className="block">
-          {now.toLocaleDateString("en-IN", { weekday: "short", day: "2-digit", month: "short" })}
+          {now ? now.toLocaleDateString("en-IN", { weekday: "short", day: "2-digit", month: "short" }) : "Loading"}
         </span>
         <span className="block">{tz}</span>
       </span>
