@@ -1,21 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Activity, Clock, Search, Target, TrendingUp, UserCheck } from "lucide-react";
+import { Clock, Search, Target } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Toaster } from "@/components/ui/sonner";
 import { NAV_SECTIONS, SECTION_SCREEN, STAGE_SECTIONS, SOURCE_FILTERS } from "@/lib/lead-manager/nav";
 import { useAgents, useLeads } from "@/lib/lead-manager/queries";
-import type { Lead, LeadStatus } from "@/lib/lead-manager/types";
-import { PIPELINE_STAGES } from "@/lib/lead-manager/types";
+import type { Agent, Lead } from "@/lib/lead-manager/types";
 import { LeadDetailSheet } from "@/components/lead-manager/LeadDetailSheet";
 import { ActionsScreen } from "@/components/lead-manager/screens/ActionsScreen";
 import { AlertsScreen } from "@/components/lead-manager/screens/AlertsScreen";
@@ -34,18 +25,9 @@ import { SourcesScreen } from "@/components/lead-manager/screens/SourcesScreen";
 import { SpamScreen } from "@/components/lead-manager/screens/SpamScreen";
 import { TeamScreen } from "@/components/lead-manager/screens/TeamScreen";
 import {
-  EmptyState,
-  LoadingRows,
   Panel,
-  PriorityBadge,
-  ScoreBar,
   SectionHeader,
-  StatCard,
-  StatusBadge,
   exportLeadsCsv,
-  inr,
-  num,
-  relTime,
 } from "@/components/lead-manager/shared";
 
 export const Route = createFileRoute("/")({
@@ -91,17 +73,6 @@ function LeadManagerPage() {
     if (screen === "spam") rows = rows.filter((l) => l.status === "spam");
     return rows;
   }, [leads, stage, sourceFilter, screen]);
-
-  const stats = useMemo(() => {
-    const won = leads.filter((l) => l.status === "won");
-    return {
-      total: leads.length,
-      hot: leads.filter((l) => l.temperature === "hot").length,
-      won: won.length,
-      value: won.reduce((s, l) => s + (l.deal_value ?? 0), 0),
-      conversion: leads.length ? Math.round((won.length / leads.length) * 100) : 0,
-    };
-  }, [leads]);
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
@@ -202,7 +173,7 @@ function LeadManagerPage() {
         <Screen
           screen={screen}
           section={section}
-          sourceFilter={sourceFilter}
+          {...(sourceFilter ? { sourceFilter } : {})}
           visible={visible}
           leads={leads}
           agents={agents}
@@ -223,7 +194,7 @@ function LeadManagerPage() {
 
 function Screen({ screen, section, sourceFilter, visible, leads, agents, isLoading, onSelect }: {
   screen: string; section: string; sourceFilter?: { source?: string; subSource?: string; label: string };
-  visible: Lead[]; leads: Lead[]; agents: ReturnType<typeof useAgents>["data"] extends (infer T)[] | undefined ? T[] : never;
+  visible: Lead[]; leads: Lead[]; agents: Agent[];
   isLoading: boolean; onSelect: (lead: Lead) => void;
 }) {
   if (screen === "overview") return <OverviewScreen onSelect={onSelect} />;
