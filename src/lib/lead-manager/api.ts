@@ -504,7 +504,8 @@ export const leadApi = {
         (load.get(a.id) ?? 0) / a.capacity - (load.get(b.id) ?? 0) / b.capacity ||
         b.conversion_rate - a.conversion_rate,
     );
-    const chosen = candidates[0]!;
+    const chosen = candidates[0];
+    if (!chosen) throw new Error("No eligible agent is available");
     return leadApi.assignLead(leadId, chosen.id, `Auto-routed to ${chosen.name} (load balancing)`);
 
   },
