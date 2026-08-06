@@ -69,13 +69,17 @@ export function LeadDetailSheet({
     qc.invalidateQueries({ queryKey: ["lm"] });
   };
 
-  const run = <T,>(fn: () => Promise<T>, success: string) =>
-    fn()
-      .then(() => {
+  const run = async <T,>(fn: () => Promise<T>, success: string) => {
+    try {
+      const result = await fn();
         toast.success(success);
-        invalidate();
-      })
-      .catch((e: Error) => toast.error(e.message));
+      await qc.invalidateQueries({ queryKey: ["lm"] });
+      return result;
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Action failed");
+      return undefined;
+    }
+  };
 
   const mutation = useMutation({
     mutationFn: async (task: () => Promise<unknown>) => task(),
@@ -125,7 +129,7 @@ export function LeadDetailSheet({
                       content: `Outbound call placed to ${lead.phone}`,
                     }),
                   "Call logged",
-                ).then(() => window.open(`tel:${lead.phone}`, "_self"))
+                ).then((result) => result && window.open(`tel:${lead.phone}`, "_self"))
               }
             >
               <Phone className="size-4" /> Call
@@ -142,8 +146,8 @@ export function LeadDetailSheet({
                       content: message || `WhatsApp conversation opened with ${lead.name}`,
                     }),
                   "WhatsApp logged",
-                ).then(() =>
-                  window.open(
+                ).then((result) =>
+                  result && window.open(
                     `https://wa.me/${lead.phone.replace(/\D/g, "")}?text=${encodeURIComponent(message || `Hi ${lead.name}, following up on your enquiry.`)}`,
                     "_blank",
                   ),
@@ -165,7 +169,7 @@ export function LeadDetailSheet({
                       content: message || `Email sent to ${lead.email}`,
                     }),
                   "Email logged",
-                ).then(() => window.open(`mailto:${lead.email}`, "_self"))
+                ).then((result) => result && window.open(`mailto:${lead.email}`, "_self"))
               }
             >
               <Mail className="size-4" /> Email
@@ -230,7 +234,7 @@ export function LeadDetailSheet({
                   size="sm"
                   disabled={!note.trim()}
                   onClick={() =>
-                    run(() => leadApi.addNote(lead.id, note), "Note saved").then(() => setNote(""))
+                    run(() => leadApi.addNote(lead.id, note), "Note saved").then((result) => result && setNote(""))
                   }
                 >
                   Save note
@@ -386,9 +390,9 @@ export function LeadDetailSheet({
                 size="sm"
                 variant="destructive"
                 onClick={() =>
-                  run(() => leadApi.deleteLead(lead.id, lead.name), "Lead deleted").then(() =>
-                    onOpenChange(false),
-                  )
+                  run(() => leadApi.deleteLead(lead.id, lead.name), "Lead deleted").then((result) => {
+                    if (result !== undefined) onOpenChange(false);
+                  })
                 }
               >
                 <Trash2 className="size-4" /> Delete lead
@@ -428,7 +432,7 @@ export function LeadDetailSheet({
                 size="sm"
                 disabled={Object.keys(edit).length === 0 || mutation.isPending}
                 onClick={() =>
-                  run(() => leadApi.updateLead(lead.id, edit), "Lead updated").then(() => setEdit({}))
+                  run(() => leadApi.updateLead(lead.id, edit), "Lead updated").then((result) => result && setEdit({}))
                 }
               >
                 <UserCog className="size-4" /> Save changes

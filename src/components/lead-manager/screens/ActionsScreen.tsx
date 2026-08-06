@@ -234,7 +234,7 @@ export function ActionsScreen({
                     run(
                       () => leadApi.logCommunication({ lead_id: l.id, type: "call", content: `Outbound call placed to ${l.phone}` }),
                       "Call logged",
-                    ).then(() => window.open(`tel:${l.phone}`, "_self"))
+                    ).then((result) => result && window.open(`tel:${l.phone}`, "_self"))
                   }
                 >
                   <Phone className="size-4" />
@@ -248,8 +248,8 @@ export function ActionsScreen({
                     run(
                       () => leadApi.logCommunication({ lead_id: l.id, type: "whatsapp", content: `WhatsApp conversation opened with ${l.name}` }),
                       "WhatsApp logged",
-                    ).then(() =>
-                      window.open(
+                    ).then((result) =>
+                      result && window.open(
                         `https://wa.me/${l.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hi ${l.name}, following up on your enquiry.`)}`,
                         "_blank",
                       ),
@@ -273,7 +273,7 @@ export function ActionsScreen({
                           content: `Email sent to ${l.email}`,
                         }),
                       "Email logged",
-                    ).then(() => window.open(`mailto:${l.email}`, "_self"))
+                    ).then((result) => result && window.open(`mailto:${l.email}`, "_self"))
                   }
                 >
                   <Mail className="size-4" />

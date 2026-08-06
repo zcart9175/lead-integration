@@ -183,6 +183,7 @@ export const leadApi = {
       throw new Error("Lead could not be deleted");
     }
     await writeAudit({
+      lead_id: id,
       action: "Lead Deleted",
       action_type: "delete",
       details: `Deleted lead ${name}`,
@@ -199,7 +200,7 @@ export const leadApi = {
         .select()
         .single(),
     );
-    await supabase.from("lead_assignments").insert({
+    const { error: assignmentError } = await supabase.from("lead_assignments").insert({
       lead_id: leadId,
       agent_id: agentId,
       previous_agent_id: previous.assigned_agent_id,
@@ -207,6 +208,13 @@ export const leadApi = {
       auto_assigned: false,
       assignment_score: lead.ai_score,
     });
+    if (assignmentError) {
+      await supabase
+        .from("leads")
+        .update({ assigned_agent_id: previous.assigned_agent_id, assigned_at: previous.assigned_at })
+        .eq("id", leadId);
+      throw new Error(assignmentError.message);
+    }
     await writeAudit({
       lead_id: leadId,
       action: previous.assigned_agent_id ? "Lead Reassigned" : "Lead Assigned",
@@ -219,8 +227,11 @@ export const leadApi = {
   async changeStatus(leadId: string, status: LeadStatus, reason?: string) {
     const updates: LeadUpdate = { status };
     if (status === "won" || status === "lost") updates.closed_at = new Date().toISOString();
+    else updates.closed_at = null;
     if (status === "lost" && reason) updates.lost_reason = reason;
+    else updates.lost_reason = null;
     if (status === "spam" && reason) updates.spam_reason = reason;
+    else updates.spam_reason = null;
     return leadApi.updateLead(leadId, updates, `Status → ${status}`);
   },
 
@@ -260,13 +271,20 @@ export const leadApi = {
   },
 
   async addNote(leadId: string, content: string, createdBy = "Lead Manager Console") {
-    return unwrap(
+    const note = unwrap(
       await supabase
         .from("lead_notes")
         .insert({ lead_id: leadId, content, created_by: createdBy })
         .select()
         .single(),
     );
+    await writeAudit({
+      lead_id: leadId,
+      action: "Note Added",
+      action_type: "update",
+      details: content,
+    });
+    return note;
   },
 
   async scheduleFollowUp(payload: {
@@ -283,10 +301,14 @@ export const leadApi = {
         .select()
         .single(),
     );
-    await supabase
+    const { error: leadUpdateError } = await supabase
       .from("leads")
-      .update({ next_follow_up: payload.scheduled_at, status: "follow_up" })
+      .update({ next_follow_up: payload.scheduled_at })
       .eq("id", payload.lead_id);
+    if (leadUpdateError) {
+      await supabase.from("lead_follow_ups").delete().eq("id", row.id);
+      throw new Error(leadUpdateError.message);
+    }
     await writeAudit({
       lead_id: payload.lead_id,
       action: "Follow-Up Scheduled",
@@ -297,7 +319,7 @@ export const leadApi = {
   },
 
   async completeFollowUp(id: string, outcome: string) {
-    return unwrap(
+    const row = unwrap(
       await supabase
         .from("lead_follow_ups")
         .update({ is_completed: true, completed_at: new Date().toISOString(), outcome })
@@ -305,10 +327,32 @@ export const leadApi = {
         .select()
         .single(),
     );
+    const next = unwrap(
+      await supabase
+        .from("lead_follow_ups")
+        .select("scheduled_at")
+        .eq("lead_id", row.lead_id)
+        .eq("is_completed", false)
+        .neq("id", id)
+        .order("scheduled_at", { ascending: true })
+        .limit(1),
+    )[0];
+    const { error: leadError } = await supabase
+      .from("leads")
+      .update({ next_follow_up: next?.scheduled_at ?? null })
+      .eq("id", row.lead_id);
+    if (leadError) throw new Error(leadError.message);
+    await writeAudit({
+      lead_id: row.lead_id,
+      action: "Follow-Up Completed",
+      action_type: "update",
+      details: outcome,
+    });
+    return row;
   },
 
   async resolveEscalation(id: string, notes: string) {
-    return unwrap(
+    const row = unwrap(
       await supabase
         .from("lead_escalations")
         .update({ is_resolved: true, resolved_at: new Date().toISOString(), resolution_notes: notes })
@@ -316,6 +360,13 @@ export const leadApi = {
         .select()
         .single(),
     );
+    await writeAudit({
+      lead_id: row.lead_id,
+      action: "Escalation Resolved",
+      action_type: "update",
+      details: notes,
+    });
+    return row;
   },
 
   async acknowledgeAlert(id: string) {
