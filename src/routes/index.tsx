@@ -8,6 +8,7 @@ import { NAV_SECTIONS, SECTION_SCREEN, STAGE_SECTIONS, SOURCE_FILTERS } from "@/
 import { useAgents, useLeads } from "@/lib/lead-manager/queries";
 import type { Agent, Lead } from "@/lib/lead-manager/types";
 import { LeadDetailSheet } from "@/components/lead-manager/LeadDetailSheet";
+import { CreateLeadDialog } from "@/components/lead-manager/CreateLeadDialog";
 import { ActionsScreen } from "@/components/lead-manager/screens/ActionsScreen";
 import { AlertsScreen } from "@/components/lead-manager/screens/AlertsScreen";
 import { AllLeadsScreen } from "@/components/lead-manager/screens/AllLeadsScreen";
@@ -63,6 +64,12 @@ function LeadManagerPage() {
 
   const { data: leads = [], isLoading } = useLeads({ search });
   const { data: agents = [] } = useAgents();
+
+  useEffect(() => {
+    if (!selected) return;
+    const refreshed = leads.find((lead) => lead.id === selected.id);
+    if (refreshed && refreshed !== selected) setSelected(refreshed);
+  }, [leads, selected]);
 
   const visible = useMemo(() => {
     let rows = leads;
@@ -149,6 +156,7 @@ function LeadManagerPage() {
           icon={Target}
           actions={
             <>
+              <CreateLeadDialog onCreated={setSelected} />
               <LiveClock />
               <div className="group relative">
                 <Search className="pointer-events-none absolute left-2.5 top-2.5 size-4 text-muted-foreground transition-colors group-focus-within:text-primary" />

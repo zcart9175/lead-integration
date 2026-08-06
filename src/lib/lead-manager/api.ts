@@ -199,7 +199,7 @@ export const leadApi = {
         .select()
         .single(),
     );
-    await supabase.from("lead_assignments").insert({
+    const { error: assignmentError } = await supabase.from("lead_assignments").insert({
       lead_id: leadId,
       agent_id: agentId,
       previous_agent_id: previous.assigned_agent_id,
@@ -207,6 +207,13 @@ export const leadApi = {
       auto_assigned: false,
       assignment_score: lead.ai_score,
     });
+    if (assignmentError) {
+      await supabase
+        .from("leads")
+        .update({ assigned_agent_id: previous.assigned_agent_id, assigned_at: previous.assigned_at })
+        .eq("id", leadId);
+      throw new Error(assignmentError.message);
+    }
     await writeAudit({
       lead_id: leadId,
       action: previous.assigned_agent_id ? "Lead Reassigned" : "Lead Assigned",
@@ -219,8 +226,11 @@ export const leadApi = {
   async changeStatus(leadId: string, status: LeadStatus, reason?: string) {
     const updates: LeadUpdate = { status };
     if (status === "won" || status === "lost") updates.closed_at = new Date().toISOString();
+    else updates.closed_at = null;
     if (status === "lost" && reason) updates.lost_reason = reason;
+    else updates.lost_reason = null;
     if (status === "spam" && reason) updates.spam_reason = reason;
+    else updates.spam_reason = null;
     return leadApi.updateLead(leadId, updates, `Status → ${status}`);
   },
 
@@ -260,13 +270,20 @@ export const leadApi = {
   },
 
   async addNote(leadId: string, content: string, createdBy = "Lead Manager Console") {
-    return unwrap(
+    const note = unwrap(
       await supabase
         .from("lead_notes")
         .insert({ lead_id: leadId, content, created_by: createdBy })
         .select()
         .single(),
     );
+    await writeAudit({
+      lead_id: leadId,
+      action: "Note Added",
+      action_type: "update",
+      details: content,
+    });
+    return note;
   },
 
   async scheduleFollowUp(payload: {
@@ -283,10 +300,14 @@ export const leadApi = {
         .select()
         .single(),
     );
-    await supabase
+    const { error: leadUpdateError } = await supabase
       .from("leads")
       .update({ next_follow_up: payload.scheduled_at, status: "follow_up" })
       .eq("id", payload.lead_id);
+    if (leadUpdateError) {
+      await supabase.from("lead_follow_ups").delete().eq("id", row.id);
+      throw new Error(leadUpdateError.message);
+    }
     await writeAudit({
       lead_id: payload.lead_id,
       action: "Follow-Up Scheduled",
