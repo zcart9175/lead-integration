@@ -27,11 +27,8 @@ import { SettingsScreen } from "@/components/lead-manager/screens/SettingsScreen
 import { SourcesScreen } from "@/components/lead-manager/screens/SourcesScreen";
 import { SpamScreen } from "@/components/lead-manager/screens/SpamScreen";
 import { TeamScreen } from "@/components/lead-manager/screens/TeamScreen";
-import {
-  Panel,
-  SectionHeader,
-  exportLeadsCsv,
-} from "@/components/lead-manager/shared";
+import { Panel, exportLeadsCsv } from "@/components/lead-manager/shared";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
