@@ -414,3 +414,125 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ============================================================
+ * CREATOR'S LAUNCHPAD — premium surface + interaction system
+ * ============================================================ */
+
+@utility bento-card {
+  position: relative;
+  background-image:
+    linear-gradient(160deg, color-mix(in oklab, var(--primary) 7%, transparent), transparent 55%),
+    linear-gradient(var(--card), var(--card));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2xl);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 350ms ease, border-color 350ms ease, transform 350ms ease;
+  &:hover {
+    border-color: color-mix(in oklab, var(--primary) 35%, var(--border));
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 0.06) inset,
+      0 28px 60px -28px oklch(0 0 0 / 0.7),
+      0 0 34px -14px color-mix(in oklab, var(--primary) 70%, transparent);
+  }
+}
+
+@utility hero-surface {
+  background-image: linear-gradient(135deg, var(--primary) 0%, var(--primary-glow) 100%);
+  color: var(--primary-foreground);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-hero);
+}
+
+@utility premium-halo {
+  position: relative;
+  isolation: isolate;
+  background-image:
+    linear-gradient(160deg, color-mix(in oklab, var(--primary) 8%, transparent), transparent 55%),
+    linear-gradient(var(--card), var(--card));
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 400ms cubic-bezier(.2,.8,.2,1), border-color 400ms ease, transform 400ms cubic-bezier(.2,.8,.2,1);
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--primary) 60%, transparent),
+      transparent 42%,
+      color-mix(in oklab, var(--accent-pink) 45%, transparent)
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 380ms ease;
+    pointer-events: none;
+    z-index: 1;
+  }
+  &:hover::before { opacity: 1; }
+}
+
+@utility hover-lift {
+  transition: transform 350ms cubic-bezier(.2,.8,.2,1), box-shadow 350ms ease;
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 0.06) inset,
+      0 30px 62px -30px oklch(0 0 0 / 0.75),
+      0 0 36px -16px color-mix(in oklab, var(--primary) 70%, transparent);
+  }
+}
+
+@utility icon3d {
+  background-image:
+    linear-gradient(180deg, oklch(1 0 0 / 0.09), oklch(1 0 0 / 0.02) 45%, oklch(0 0 0 / 0.10)),
+    linear-gradient(var(--surface), var(--surface));
+  border: 1px solid var(--border);
+  box-shadow:
+    0 1px 0 0 oklch(1 0 0 / 0.10) inset,
+    0 1px 2px 0 oklch(0 0 0 / 0.35);
+  &:hover {
+    border-color: color-mix(in oklab, var(--primary) 40%, var(--border));
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 0.14) inset,
+      0 4px 10px -4px oklch(0 0 0 / 0.45);
+  }
+  &:active { box-shadow: 0 1px 3px 0 oklch(0 0 0 / 0.35) inset; }
+}
+
+@utility btn-glow {
+  background-image: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--primary-glow) 55%,
+    color-mix(in oklab, var(--accent-pink) 55%, var(--primary-glow)) 100%
+  );
+  color: var(--primary-foreground);
+  box-shadow:
+    0 1px 0 0 oklch(1 0 0 / 0.22) inset,
+    0 0 0 1px color-mix(in oklab, var(--primary-glow) 40%, transparent),
+    0 10px 30px -12px color-mix(in oklab, var(--primary) 85%, transparent);
+  &:hover {
+    filter: saturate(1.08) brightness(1.05);
+    transform: translateY(-1px);
+  }
+  &:active { transform: translateY(0); }
+}
+
+@utility focus-glow {
+  transition: box-shadow 250ms ease, border-color 250ms ease;
+  &:focus-visible {
+    outline: none;
+    border-color: color-mix(in oklab, var(--primary) 55%, var(--border));
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--primary-glow) 65%, transparent),
+      0 0 22px -6px color-mix(in oklab, var(--primary-glow) 75%, transparent);
+  }
+  &:focus-within { border-color: color-mix(in oklab, var(--primary) 45%, var(--border)); }
+}
