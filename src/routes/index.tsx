@@ -54,6 +54,7 @@ export const Route = createFileRoute("/")({
 
 function LeadManagerPage() {
   const [section, setSection] = useState("dashboard");
+  const { collapsed, toggleCollapsed, mobileOpen, setMobileOpen } = useSidebarState();
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Lead | null>(null);
 
