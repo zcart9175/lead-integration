@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Clock, Search, Target } from "lucide-react";
+import { Activity, Clock, Download, Menu, Search, Target } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
+import { AppSidebar, useSidebarState } from "@/components/lead-manager/AppSidebar";
+
 import { NAV_SECTIONS, SECTION_SCREEN, STAGE_SECTIONS, SOURCE_FILTERS } from "@/lib/lead-manager/nav";
 import { useAgents, useLeads } from "@/lib/lead-manager/queries";
 import type { Agent, Lead } from "@/lib/lead-manager/types";
