@@ -80,114 +80,102 @@ function LeadManagerPage() {
     return rows;
   }, [leads, stage, sourceFilter, screen]);
 
+  const title = sourceFilter?.label ?? titleFor(section);
+
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
-      <aside className="hidden w-72 shrink-0 overflow-y-auto border-r border-sidebar-border/80 bg-sidebar/80 backdrop-blur-xl lg:block">
-        <div className="sticky top-0 z-10 border-b border-sidebar-border/80 bg-sidebar/90 px-5 py-4 backdrop-blur-xl">
-          <div className="flex items-center gap-3">
-            <span className="gradient-brand ambient-glow flex size-9 items-center justify-center rounded-xl font-display text-sm font-bold text-primary-foreground">
-              SV
-            </span>
-            <div className="min-w-0">
-              <p className="truncate font-display text-base font-semibold tracking-tight">
-                Software Vala
-              </p>
-              <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <span className="status-dot text-success" /> Lead Manager
-              </p>
-            </div>
+    <div className="flex min-h-screen w-full bg-background text-foreground">
+      <AppSidebar
+        section={section}
+        onSelectSection={setSection}
+        collapsed={collapsed}
+        onToggleCollapsed={toggleCollapsed}
+        mobileOpen={mobileOpen}
+        onCloseMobile={() => setMobileOpen(false)}
+      />
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* TOP BAR */}
+        <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b border-border bg-background/80 px-4 backdrop-blur-xl sm:px-6">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="icon3d grid h-9 w-9 shrink-0 place-items-center rounded-xl text-muted-foreground hover:text-foreground lg:hidden"
+            aria-label="Open menu"
+          >
+            <Menu className="h-4 w-4" />
+          </button>
+
+          <div className="focus-glow flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 sm:max-w-md">
+            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search leads…"
+              className="h-auto border-0 bg-transparent p-0 text-sm shadow-none focus-visible:ring-0"
+            />
           </div>
-        </div>
-        <nav className="space-y-5 px-3 py-4">
-          {NAV_SECTIONS.map((s) => (
-            <div key={s.id}>
-              <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80">
-                {s.label}
+
+          <div className="ml-auto flex items-center gap-2">
+            <LiveClock />
+            <button
+              onClick={() => exportLeadsCsv(visible)}
+              className="icon3d grid h-9 w-9 place-items-center rounded-xl text-muted-foreground hover:text-foreground"
+              aria-label="Export CSV"
+              title="Export CSV"
+            >
+              <Download className="h-4 w-4" />
+            </button>
+            <CreateLeadDialog onCreated={setSelected} />
+          </div>
+        </header>
+
+        <main
+          key={section}
+          className="mx-auto w-full max-w-[1600px] space-y-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10"
+        >
+          {/* SCREEN BANNER */}
+          <section className="hero-surface relative overflow-hidden p-5 sm:p-7 lg:p-9">
+            <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+            <div className="absolute -bottom-24 -left-10 h-64 w-64 rounded-full bg-accent-pink/40 blur-3xl" />
+            <div className="relative min-w-0">
+              <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-[11px] font-medium backdrop-blur">
+                <Target className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">Lead Manager</span>
+              </div>
+              <h1 className="mt-4 truncate text-2xl font-semibold tracking-tight sm:text-3xl lg:text-[34px]">
+                {title}
+              </h1>
+              <p className="mt-1.5 max-w-2xl text-sm text-white/80 sm:text-[15px]">
+                Live data from the Software Vala lead database — every action is written back
+                through the API.
               </p>
-              <div className="space-y-0.5">
-                {s.items.map((item) => (
-                  <div key={item.id}>
-                    <button
-                      onClick={() => setSection(item.id)}
-                      className={`group relative flex w-full items-center gap-2.5 overflow-hidden rounded-lg px-2.5 py-2 text-left text-sm transition-all duration-300 ${
-                        section === item.id
-                          ? "bg-sidebar-primary/90 text-sidebar-primary-foreground shadow-[var(--elev-1)]"
-                          : "text-sidebar-foreground hover:translate-x-0.5 hover:bg-sidebar-accent/70"
-                      }`}
-                    >
-                      <span
-                        className={`absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-primary transition-opacity duration-300 ${
-                          section === item.id ? "opacity-100" : "opacity-0"
-                        }`}
-                      />
-                      <item.icon className="size-4 shrink-0 transition-transform duration-300 group-hover:scale-110" />
-                      <span className="truncate">{item.label}</span>
-                    </button>
-                    {item.children && section.startsWith(item.id.split("_")[0] ?? "") ? (
-                      <div className="ml-6 space-y-0.5 border-l border-sidebar-border pl-2">
-                        {item.children.map((c) => (
-                          <button
-                            key={c.id}
-                            onClick={() => setSection(c.id)}
-                            className={`block w-full truncate rounded px-2 py-1 text-left text-xs transition-all duration-200 hover:translate-x-0.5 ${
-                              section === c.id
-                                ? "text-sidebar-primary-foreground bg-sidebar-accent"
-                                : "text-muted-foreground hover:text-sidebar-foreground"
-                            }`}
-                          >
-                            {c.label}
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                <Button
+                  variant="secondary"
+                  className="rounded-full bg-white px-5 font-semibold text-primary hover:bg-white/90"
+                  onClick={() => exportLeadsCsv(visible)}
+                >
+                  Export CSV <Download className="h-4 w-4" />
+                </Button>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-medium">
+                  <Activity className="h-3 w-3" />
+                  {visible.length} records in view
+                </span>
               </div>
             </div>
-          ))}
-        </nav>
-      </aside>
+          </section>
 
-      <main key={section} className="flex-1 space-y-6 overflow-x-hidden p-6">
-        <SectionHeader
-          title={sourceFilter?.label ?? titleFor(section)}
-          description="Live data from the Software Vala lead database — every action is written back through the API."
-          icon={Target}
-          actions={
-            <>
-              <CreateLeadDialog onCreated={setSelected} />
-              <LiveClock />
-              <div className="group relative">
-                <Search className="pointer-events-none absolute left-2.5 top-2.5 size-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
-                <Input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search leads…"
-                  className="w-64 border-border/70 bg-surface-2/60 pl-8 backdrop-blur-md transition-all duration-300 focus-visible:w-72"
-                />
-              </div>
-              <Button
-                variant="secondary"
-                className="lift sheen"
-                onClick={() => exportLeadsCsv(visible)}
-              >
-                Export CSV
-              </Button>
-            </>
-          }
-        />
-
-        <Screen
-          screen={screen}
-          section={section}
-          {...(sourceFilter ? { sourceFilter } : {})}
-          visible={visible}
-          leads={leads}
-          agents={agents}
-          isLoading={isLoading}
-          onSelect={setSelected}
-        />
-      </main>
+          <Screen
+            screen={screen}
+            section={section}
+            {...(sourceFilter ? { sourceFilter } : {})}
+            visible={visible}
+            leads={leads}
+            agents={agents}
+            isLoading={isLoading}
+            onSelect={setSelected}
+          />
+        </main>
+      </div>
 
       <LeadDetailSheet
         lead={selected}
@@ -198,6 +186,7 @@ function LeadManagerPage() {
     </div>
   );
 }
+
 
 function Screen({ screen, section, sourceFilter, visible, leads, agents, isLoading, onSelect }: {
   screen: string; section: string; sourceFilter?: { source?: string; subSource?: string; label: string };
