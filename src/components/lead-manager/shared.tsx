@@ -227,7 +227,7 @@ export function StatCard({
   }[tone];
 
   return (
-    <Card className="premium-surface lift sheen rise group gap-0 border-0 p-5">
+    <Card className="bento-card premium-halo hover-lift shimmer-sweep rise group gap-0 border-0 !p-5">
       <div className="relative z-[3] flex items-start justify-between gap-3">
         <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
           {label}
@@ -287,7 +287,7 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <Card className={cn("premium-surface rise gap-0 border-0 p-0", className)}>
+    <Card className={cn("bento-card premium-halo rise gap-0 border-0 !p-0", className)}>
       {title ? (
         <div className="relative z-[3] flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-5 py-4">
           <div className="min-w-0">
