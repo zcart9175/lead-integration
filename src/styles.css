@@ -536,3 +536,25 @@
   }
   &:focus-within { border-color: color-mix(in oklab, var(--primary) 45%, var(--border)); }
 }
+
+@utility shimmer-sweep {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(
+      110deg,
+      transparent 30%,
+      color-mix(in oklab, white 12%, transparent) 48%,
+      transparent 66%
+    );
+    transform: translateX(-120%);
+    transition: transform 800ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  &:hover::after { transform: translateX(120%); }
+}
