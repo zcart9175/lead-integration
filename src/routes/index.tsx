@@ -65,6 +65,13 @@ export const Route = createFileRoute("/")({
   component: LeadManagerPage,
 });
 
+const TOPBAR_ACTIONS = [
+  { id: "alerts", label: "Alerts", icon: Bell },
+  { id: "escalations", label: "Escalations", icon: AlertTriangle },
+  { id: "team", label: "Team", icon: Users },
+  { id: "settings", label: "Settings", icon: SettingsIcon },
+] as const;
+
 function LeadManagerPage() {
   const [section, setSection] = useState("dashboard");
   const { collapsed, toggleCollapsed, mobileOpen, setMobileOpen } = useSidebarState();
