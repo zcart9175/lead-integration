@@ -187,6 +187,30 @@ function LeadManagerPage() {
             </div>
           </section>
 
+          {/* SECTION PILL TABS */}
+          {siblings.length > 1 && (
+            <div className="-mx-1 overflow-x-auto">
+              <div className="flex min-w-max items-center gap-2 px-1">
+                {siblings.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => setSection(s.id)}
+                    className={cn(
+                      "whitespace-nowrap rounded-full border px-3.5 py-2 text-xs font-medium transition-colors",
+                      s.id === section
+                        ? "border-primary/40 bg-primary/20 text-foreground"
+                        : "border-border text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                    )}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+
+
           <Screen
             screen={screen}
             section={section}
