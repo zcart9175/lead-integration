@@ -117,6 +117,27 @@ function LeadManagerPage() {
 
           <div className="ml-auto flex items-center gap-2">
             <LiveClock />
+            <div className="hidden items-center gap-1.5 sm:flex">
+              {TOPBAR_ACTIONS.map((a) => (
+                <button
+                  key={a.id}
+                  onClick={() => setSection(a.id)}
+                  className={cn(
+                    "icon3d relative grid h-9 w-9 place-items-center rounded-xl text-muted-foreground transition-[transform,box-shadow,color] duration-200 hover:text-foreground active:scale-[0.96]",
+                    section === a.id && "icon3d--accent text-primary-foreground",
+                  )}
+                  aria-label={a.label}
+                  title={a.label}
+                >
+                  <a.icon className="h-[18px] w-[18px]" />
+                  {a.id === "alerts" && alertCount > 0 && (
+                    <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-primary px-1 text-[10px] font-bold leading-none text-primary-foreground ring-2 ring-background">
+                      {alertCount > 99 ? "99+" : alertCount}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
             <button
               onClick={() => exportLeadsCsv(visible)}
               className="icon3d grid h-9 w-9 place-items-center rounded-xl text-muted-foreground hover:text-foreground"
@@ -127,6 +148,7 @@ function LeadManagerPage() {
             </button>
             <CreateLeadDialog onCreated={setSelected} />
           </div>
+
         </header>
 
         <main
