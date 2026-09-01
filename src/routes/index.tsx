@@ -1,14 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Activity, Clock, Download, Menu, Search, Target } from "lucide-react";
+import {
+  Activity,
+  AlertTriangle,
+  Bell,
+  Clock,
+  Download,
+  Menu,
+  Search,
+  Settings as SettingsIcon,
+  Target,
+  Users,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
+import { cn } from "@/lib/utils";
 import { AppSidebar, useSidebarState } from "@/components/lead-manager/AppSidebar";
 
 import { NAV_SECTIONS, SECTION_SCREEN, STAGE_SECTIONS, SOURCE_FILTERS } from "@/lib/lead-manager/nav";
-import { useAgents, useLeads } from "@/lib/lead-manager/queries";
+import { useAgents, useAlerts, useLeads } from "@/lib/lead-manager/queries";
 import type { Agent, Lead } from "@/lib/lead-manager/types";
+
 import { LeadDetailSheet } from "@/components/lead-manager/LeadDetailSheet";
 import { CreateLeadDialog } from "@/components/lead-manager/CreateLeadDialog";
 import { ActionsScreen } from "@/components/lead-manager/screens/ActionsScreen";
