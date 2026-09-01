@@ -1,14 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Activity, Clock, Download, Menu, Search, Target } from "lucide-react";
+import {
+  Activity,
+  AlertTriangle,
+  Bell,
+  Clock,
+  Download,
+  Menu,
+  Search,
+  Settings as SettingsIcon,
+  Target,
+  Users,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
+import { cn } from "@/lib/utils";
 import { AppSidebar, useSidebarState } from "@/components/lead-manager/AppSidebar";
 
 import { NAV_SECTIONS, SECTION_SCREEN, STAGE_SECTIONS, SOURCE_FILTERS } from "@/lib/lead-manager/nav";
-import { useAgents, useLeads } from "@/lib/lead-manager/queries";
+import { useAgents, useAlerts, useLeads } from "@/lib/lead-manager/queries";
 import type { Agent, Lead } from "@/lib/lead-manager/types";
+
 import { LeadDetailSheet } from "@/components/lead-manager/LeadDetailSheet";
 import { CreateLeadDialog } from "@/components/lead-manager/CreateLeadDialog";
 import { ActionsScreen } from "@/components/lead-manager/screens/ActionsScreen";
@@ -52,6 +65,13 @@ export const Route = createFileRoute("/")({
   component: LeadManagerPage,
 });
 
+const TOPBAR_ACTIONS = [
+  { id: "alerts", label: "Alerts", icon: Bell },
+  { id: "escalations", label: "Escalations", icon: AlertTriangle },
+  { id: "team", label: "Team", icon: Users },
+  { id: "settings", label: "Settings", icon: SettingsIcon },
+] as const;
+
 function LeadManagerPage() {
   const [section, setSection] = useState("dashboard");
   const { collapsed, toggleCollapsed, mobileOpen, setMobileOpen } = useSidebarState();
@@ -64,6 +84,22 @@ function LeadManagerPage() {
 
   const { data: leads = [], isLoading } = useLeads({ search });
   const { data: agents = [] } = useAgents();
+  const { data: alerts = [] } = useAlerts();
+  const alertCount = alerts.filter((a) => a.is_active && !a.acknowledged_at).length;
+
+  const siblings = useMemo(() => {
+    for (const group of NAV_SECTIONS) {
+      for (const item of group.items) {
+        if (item.id === section || item.children?.some((c) => c.id === section)) {
+          if (item.children?.length)
+            return [{ id: item.id, label: "All" }, ...item.children];
+          return group.items.map((i) => ({ id: i.id, label: i.label }));
+        }
+      }
+    }
+    return [];
+  }, [section]);
+
 
   useEffect(() => {
     if (!selected) return;
@@ -117,6 +153,27 @@ function LeadManagerPage() {
 
           <div className="ml-auto flex items-center gap-2">
             <LiveClock />
+            <div className="hidden items-center gap-1.5 sm:flex">
+              {TOPBAR_ACTIONS.map((a) => (
+                <button
+                  key={a.id}
+                  onClick={() => setSection(a.id)}
+                  className={cn(
+                    "icon3d relative grid h-9 w-9 place-items-center rounded-xl text-muted-foreground transition-[transform,box-shadow,color] duration-200 hover:text-foreground active:scale-[0.96]",
+                    section === a.id && "icon3d--accent text-primary-foreground",
+                  )}
+                  aria-label={a.label}
+                  title={a.label}
+                >
+                  <a.icon className="h-[18px] w-[18px]" />
+                  {a.id === "alerts" && alertCount > 0 && (
+                    <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-primary px-1 text-[10px] font-bold leading-none text-primary-foreground ring-2 ring-background">
+                      {alertCount > 99 ? "99+" : alertCount}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
             <button
               onClick={() => exportLeadsCsv(visible)}
               className="icon3d grid h-9 w-9 place-items-center rounded-xl text-muted-foreground hover:text-foreground"
@@ -127,6 +184,7 @@ function LeadManagerPage() {
             </button>
             <CreateLeadDialog onCreated={setSelected} />
           </div>
+
         </header>
 
         <main
@@ -164,6 +222,30 @@ function LeadManagerPage() {
               </div>
             </div>
           </section>
+
+          {/* SECTION PILL TABS */}
+          {siblings.length > 1 && (
+            <div className="-mx-1 overflow-x-auto">
+              <div className="flex min-w-max items-center gap-2 px-1">
+                {siblings.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => setSection(s.id)}
+                    className={cn(
+                      "whitespace-nowrap rounded-full border px-3.5 py-2 text-xs font-medium transition-colors",
+                      s.id === section
+                        ? "border-primary/40 bg-primary/20 text-foreground"
+                        : "border-border text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                    )}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+
 
           <Screen
             screen={screen}

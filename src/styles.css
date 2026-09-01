@@ -161,6 +161,10 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    background-image:
+      radial-gradient(60% 40% at 20% 0%, oklch(0.58 0.19 255 / 0.12), transparent 60%),
+      radial-gradient(50% 35% at 90% 10%, oklch(0.66 0.17 250 / 0.07), transparent 60%);
+    background-attachment: fixed;
   }
 
   h1,
@@ -169,7 +173,111 @@
   h4 {
     font-family: var(--font-display);
   }
+
+  /* Thin, rounded, auto-hiding premium scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+  *:hover,
+  *:focus-within {
+    scrollbar-color: color-mix(in oklab, var(--color-foreground) 22%, transparent) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 9999px;
+    transition: background 200ms ease;
+  }
+  *:hover::-webkit-scrollbar-thumb,
+  *:focus-within::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--color-foreground) 20%, transparent);
+  }
 }
+
+@utility icon3d--accent {
+  background-image:
+    linear-gradient(180deg, oklch(1 0 0 / 0.2), oklch(1 0 0 / 0.02) 55%, oklch(0 0 0 / 0.12)),
+    linear-gradient(var(--primary), var(--primary));
+  border-color: color-mix(in oklab, var(--primary) 55%, transparent);
+}
+
+@utility btn-premium {
+  isolation: isolate;
+  overflow: hidden;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      110deg,
+      transparent 25%,
+      color-mix(in oklab, white 28%, transparent) 45%,
+      transparent 65%
+    );
+    transform: translateX(-120%);
+    transition: transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    pointer-events: none;
+    opacity: 0.7;
+  }
+  &:hover::after {
+    transform: translateX(120%);
+  }
+  & > * {
+    position: relative;
+    z-index: 2;
+  }
+}
+
+@utility btn-glow--rich {
+  box-shadow:
+    0 1px 0 0 oklch(1 0 0 / 0.28) inset,
+    0 0 0 1px color-mix(in oklab, var(--primary-glow) 60%, transparent),
+    0 18px 50px -14px color-mix(in oklab, var(--primary) 95%, transparent),
+    0 0 34px -6px color-mix(in oklab, var(--accent-pink) 45%, transparent);
+}
+
+@utility btn-outline-glow {
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--primary) 70%, transparent),
+      transparent 45%,
+      color-mix(in oklab, var(--accent-pink) 55%, transparent)
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 300ms ease;
+    pointer-events: none;
+  }
+  &:hover::before {
+    opacity: 1;
+  }
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 36px -18px color-mix(in oklab, var(--primary) 90%, transparent);
+  }
+}
+
 
 @utility surface-panel {
   background-color: var(--surface);
