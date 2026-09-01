@@ -77,6 +77,22 @@ function LeadManagerPage() {
 
   const { data: leads = [], isLoading } = useLeads({ search });
   const { data: agents = [] } = useAgents();
+  const { data: alerts = [] } = useAlerts();
+  const alertCount = alerts.filter((a) => a.is_active && !a.acknowledged_at).length;
+
+  const siblings = useMemo(() => {
+    for (const group of NAV_SECTIONS) {
+      for (const item of group.items) {
+        if (item.id === section || item.children?.some((c) => c.id === section)) {
+          if (item.children?.length)
+            return [{ id: item.id, label: "All" }, ...item.children];
+          return group.items.map((i) => ({ id: i.id, label: i.label }));
+        }
+      }
+    }
+    return [];
+  }, [section]);
+
 
   useEffect(() => {
     if (!selected) return;
