@@ -227,7 +227,7 @@ export function StatCard({
   }[tone];
 
   return (
-    <Card className="bento-card premium-halo hover-lift shimmer-sweep rise group gap-0 border-0 !p-5">
+    <Card className="bento-card premium-halo hover-lift shimmer-sweep enter-soft group gap-0 border-0 !p-4">
       <div className="relative z-[3] flex items-start justify-between gap-3">
         <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
           {label}
@@ -244,9 +244,10 @@ export function StatCard({
         ) : null}
       </div>
 
-      <p className="relative z-[3] mt-3 font-display text-[1.75rem] font-semibold leading-none tracking-tight">
+      <p className="relative z-[3] mt-1.5 font-display text-2xl font-bold leading-none tracking-tight">
         <AnimatedValue value={value} />
       </p>
+
 
       <div className="relative z-[3] mt-1.5 flex items-center gap-2">
         {typeof trend === "number" ? (
@@ -287,9 +288,9 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <Card className={cn("bento-card premium-halo rise gap-0 border-0 !p-0", className)}>
+    <Card className={cn("bento-card premium-halo enter-soft gap-0 border-0 !p-0", className)}>
       {title ? (
-        <div className="relative z-[3] flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-5 py-4">
+        <div className="relative z-[3] flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-4 py-3.5 sm:px-5 sm:py-4">
           <div className="min-w-0">
             <h2 className="font-display text-base font-semibold tracking-tight">{title}</h2>
             {description ? (
@@ -299,7 +300,8 @@ export function Panel({
           {actions}
         </div>
       ) : null}
-      <div className="relative z-[3] p-5">{children}</div>
+      <div className="relative z-[3] p-4 sm:p-5">{children}</div>
+
     </Card>
   );
 }
