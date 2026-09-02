@@ -227,7 +227,7 @@ export function StatCard({
   }[tone];
 
   return (
-    <Card className="bento-card premium-halo hover-lift shimmer-sweep rise group gap-0 border-0 !p-5">
+    <Card className="bento-card premium-halo hover-lift shimmer-sweep enter-soft group gap-0 border-0 !p-4">
       <div className="relative z-[3] flex items-start justify-between gap-3">
         <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
           {label}
