@@ -7,9 +7,12 @@ import {
   Clock,
   Download,
   Menu,
+  IndianRupee,
   Search,
   Settings as SettingsIcon,
+  Sparkles,
   Target,
+  TrendingUp,
   Users,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -40,7 +43,7 @@ import { SettingsScreen } from "@/components/lead-manager/screens/SettingsScreen
 import { SourcesScreen } from "@/components/lead-manager/screens/SourcesScreen";
 import { SpamScreen } from "@/components/lead-manager/screens/SpamScreen";
 import { TeamScreen } from "@/components/lead-manager/screens/TeamScreen";
-import { Panel, exportLeadsCsv } from "@/components/lead-manager/shared";
+import { Panel, exportLeadsCsv, inr, num } from "@/components/lead-manager/shared";
 
 
 export const Route = createFileRoute("/")({
@@ -119,6 +122,23 @@ function LeadManagerPage() {
 
   const title = sourceFilter?.label ?? titleFor(section);
 
+  const kpis = useMemo(() => {
+    const won = visible.filter((l) => l.status === "won");
+    const open = visible.filter((l) => !["won", "lost", "spam"].includes(l.status));
+    const pipeline = open.reduce((s, l) => s + (l.deal_value ?? 0), 0);
+    const avgScore = visible.length
+      ? Math.round(visible.reduce((s, l) => s + (l.ai_score ?? 0), 0) / visible.length)
+      : 0;
+    return [
+      { label: "In view", value: num(visible.length), icon: Target, tint: "text-primary-glow" },
+      { label: "New", value: num(visible.filter((l) => l.status === "new").length), icon: Sparkles, tint: "text-accent-pink" },
+      { label: "Open", value: num(open.length), icon: Activity, tint: "text-primary-glow" },
+      { label: "Won", value: num(won.length), icon: TrendingUp, tint: "text-accent-emerald" },
+      { label: "Pipeline", value: inr(pipeline), icon: IndianRupee, tint: "text-accent-amber" },
+      { label: "Avg score", value: String(avgScore), icon: Users, tint: "text-primary-glow" },
+    ];
+  }, [visible]);
+
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
       <AppSidebar
@@ -132,7 +152,7 @@ function LeadManagerPage() {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* TOP BAR */}
-        <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b border-border bg-background/80 px-4 backdrop-blur-xl sm:px-6">
+        <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-1.5 border-b border-border bg-background/80 px-3 backdrop-blur-xl lg:px-5">
           <button
             onClick={() => setMobileOpen(true)}
             className="icon3d grid h-9 w-9 shrink-0 place-items-center rounded-xl text-muted-foreground hover:text-foreground lg:hidden"
@@ -221,6 +241,21 @@ function LeadManagerPage() {
                 </span>
               </div>
             </div>
+          </section>
+
+          {/* KPI STRIP */}
+          <section className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-6">
+            {kpis.map((k) => (
+              <div key={k.label} className="bento-card enter-soft !p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="truncate text-[11px] uppercase tracking-wider text-muted-foreground">
+                    {k.label}
+                  </p>
+                  <k.icon className={cn("h-4 w-4 shrink-0", k.tint)} />
+                </div>
+                <p className="num mt-1 truncate text-xl font-bold">{k.value}</p>
+              </div>
+            ))}
           </section>
 
           {/* SECTION PILL TABS */}
