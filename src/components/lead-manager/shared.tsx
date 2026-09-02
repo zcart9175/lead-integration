@@ -244,9 +244,10 @@ export function StatCard({
         ) : null}
       </div>
 
-      <p className="relative z-[3] mt-3 font-display text-[1.75rem] font-semibold leading-none tracking-tight">
+      <p className="relative z-[3] mt-1.5 font-display text-2xl font-bold leading-none tracking-tight">
         <AnimatedValue value={value} />
       </p>
+
 
       <div className="relative z-[3] mt-1.5 flex items-center gap-2">
         {typeof trend === "number" ? (
