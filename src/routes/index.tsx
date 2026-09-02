@@ -132,7 +132,7 @@ function LeadManagerPage() {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* TOP BAR */}
-        <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b border-border bg-background/80 px-4 backdrop-blur-xl sm:px-6">
+        <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-1.5 border-b border-border bg-background/80 px-3 backdrop-blur-xl lg:px-5">
           <button
             onClick={() => setMobileOpen(true)}
             className="icon3d grid h-9 w-9 shrink-0 place-items-center rounded-xl text-muted-foreground hover:text-foreground lg:hidden"
