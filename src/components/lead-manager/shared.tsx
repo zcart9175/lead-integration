@@ -288,9 +288,9 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <Card className={cn("bento-card premium-halo rise gap-0 border-0 !p-0", className)}>
+    <Card className={cn("bento-card premium-halo enter-soft gap-0 border-0 !p-0", className)}>
       {title ? (
-        <div className="relative z-[3] flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-5 py-4">
+        <div className="relative z-[3] flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-4 py-3.5 sm:px-5 sm:py-4">
           <div className="min-w-0">
             <h2 className="font-display text-base font-semibold tracking-tight">{title}</h2>
             {description ? (
@@ -300,7 +300,8 @@ export function Panel({
           {actions}
         </div>
       ) : null}
-      <div className="relative z-[3] p-5">{children}</div>
+      <div className="relative z-[3] p-4 sm:p-5">{children}</div>
+
     </Card>
   );
 }
