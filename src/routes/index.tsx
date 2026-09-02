@@ -7,9 +7,12 @@ import {
   Clock,
   Download,
   Menu,
+  IndianRupee,
   Search,
   Settings as SettingsIcon,
+  Sparkles,
   Target,
+  TrendingUp,
   Users,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -40,7 +43,7 @@ import { SettingsScreen } from "@/components/lead-manager/screens/SettingsScreen
 import { SourcesScreen } from "@/components/lead-manager/screens/SourcesScreen";
 import { SpamScreen } from "@/components/lead-manager/screens/SpamScreen";
 import { TeamScreen } from "@/components/lead-manager/screens/TeamScreen";
-import { Panel, exportLeadsCsv } from "@/components/lead-manager/shared";
+import { Panel, exportLeadsCsv, inr, num } from "@/components/lead-manager/shared";
 
 
 export const Route = createFileRoute("/")({
