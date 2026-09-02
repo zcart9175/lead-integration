@@ -223,6 +223,21 @@ function LeadManagerPage() {
             </div>
           </section>
 
+          {/* KPI STRIP */}
+          <section className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-6">
+            {kpis.map((k) => (
+              <div key={k.label} className="bento-card enter-soft !p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="truncate text-[11px] uppercase tracking-wider text-muted-foreground">
+                    {k.label}
+                  </p>
+                  <k.icon className={cn("h-4 w-4 shrink-0", k.tint)} />
+                </div>
+                <p className="num mt-1 truncate text-xl font-bold">{k.value}</p>
+              </div>
+            ))}
+          </section>
+
           {/* SECTION PILL TABS */}
           {siblings.length > 1 && (
             <div className="-mx-1 overflow-x-auto">
