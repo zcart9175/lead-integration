@@ -119,6 +119,23 @@ function LeadManagerPage() {
 
   const title = sourceFilter?.label ?? titleFor(section);
 
+  const kpis = useMemo(() => {
+    const won = visible.filter((l) => l.status === "won");
+    const open = visible.filter((l) => !["won", "lost", "spam"].includes(l.status));
+    const pipeline = open.reduce((s, l) => s + (l.deal_value ?? 0), 0);
+    const avgScore = visible.length
+      ? Math.round(visible.reduce((s, l) => s + (l.ai_score ?? 0), 0) / visible.length)
+      : 0;
+    return [
+      { label: "In view", value: num(visible.length), icon: Target, tint: "text-primary-glow" },
+      { label: "New", value: num(visible.filter((l) => l.status === "new").length), icon: Sparkles, tint: "text-accent-pink" },
+      { label: "Open", value: num(open.length), icon: Activity, tint: "text-primary-glow" },
+      { label: "Won", value: num(won.length), icon: TrendingUp, tint: "text-accent-emerald" },
+      { label: "Pipeline", value: inr(pipeline), icon: IndianRupee, tint: "text-accent-amber" },
+      { label: "Avg score", value: String(avgScore), icon: Users, tint: "text-primary-glow" },
+    ];
+  }, [visible]);
+
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
       <AppSidebar
