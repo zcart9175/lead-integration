@@ -8,12 +8,12 @@ import type { Lead } from "@/lib/lead-manager/types";
 import { Panel, StatCard, relTime } from "../shared";
 import { useAction } from "./common";
 
-const TYPES = [{ key: "new_lead", label: "New Lead Alert", icon: Bell }, { key: "idle", label: "Idle Lead Alert", icon: Clock }, { key: "sla_breach", label: "SLA Breach Alert", icon: AlertTriangle }, { key: "duplicate", label: "Duplicate Lead Alert", icon: Copy }, { key: "high_value", label: "High-Value Lead Alert", icon: Target }];
+const TYPES = [{ key: "new", label: "New Lead Alert", icon: Bell }, { key: "idle", label: "Idle Lead Alert", icon: Clock }, { key: "sla", label: "SLA Breach Alert", icon: AlertTriangle }, { key: "duplicate", label: "Duplicate Lead Alert", icon: Copy }, { key: "high_value", label: "High-Value Lead Alert", icon: Target }];
 export function AlertsScreen({ section, onSelect }: { section: string; onSelect: (lead: Lead) => void }) {
   const { data: alerts = [] } = useAlerts();
   const { data: leads = [] } = useLeads();
   const run = useAction();
-  const selectedType = ({ new_lead_alert: "new_lead", idle_alert: "idle", sla_breach: "sla_breach", duplicate_alert: "duplicate", high_value_alert: "high_value" } as Record<string, string>)[section];
+  const selectedType = ({ new_lead_alert: "new", idle_alert: "idle", sla_breach: "sla", duplicate_alert: "duplicate", high_value_alert: "high_value" } as Record<string, string>)[section];
   const rows = useMemo(() => selectedType ? alerts.filter((a) => a.alert_type === selectedType) : alerts, [alerts, selectedType]);
   const leadMap = new Map(leads.map((lead) => [lead.id, lead]));
   return <div className="space-y-6">
