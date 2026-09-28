@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, PanelLeftClose, PanelLeftOpen, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_SECTIONS } from "@/lib/lead-manager/nav";
-import logoAsset from "@/assets/software-vala-logo.jpg.asset.json";
+import logoAsset from "@/assets/software-vala-logo-crop.jpg.asset.json";
 
 const COLLAPSE_KEY = "sv:sidebar:collapsed";
 
