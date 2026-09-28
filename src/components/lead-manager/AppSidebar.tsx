@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, PanelLeftClose, PanelLeftOpen, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_SECTIONS } from "@/lib/lead-manager/nav";
+import logoAsset from "@/assets/software-vala-logo-crop.jpg.asset.json";
 
 const COLLAPSE_KEY = "sv:sidebar:collapsed";
 
@@ -123,9 +124,11 @@ export function AppSidebar({
         )}
       >
         <div className="flex min-w-0 items-center gap-2">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary-glow font-bold text-primary-foreground">
-            SV
-          </span>
+          <img
+            src={logoAsset.url}
+            alt="Software Vala logo"
+            className="h-9 w-9 shrink-0 rounded-full object-contain"
+          />
           {!collapsed && (
             <span className="truncate text-sm font-semibold tracking-tight">Software Vala</span>
           )}
