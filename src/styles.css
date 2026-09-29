@@ -718,22 +718,15 @@
 .print-only { display: none; }
 @media print {
   @page { margin: 12mm; }
-  html, body { background: #fff !important; color: #111 !important; }
+  html, body, body * { background-color: #fff !important; background-image: none !important; box-shadow: none !important; text-shadow: none !important; backdrop-filter: none !important; }
+  body { color: #111 !important; }
   aside, header, .no-print, [data-sonner-toaster] { display: none !important; }
-  .print-only { display: flex !important; }
-  main, main * { color: #111 !important; box-shadow: none !important; text-shadow: none !important; backdrop-filter: none !important; }
-  main *:not(img) { background: transparent !important; border-color: #ccc !important; }
-  main { overflow: visible !important; height: auto !important; }
-  .print-report [role="progressbar"] { background: #e5e5e5 !important; border: 1px solid #ccc; }
-  .print-report [role="progressbar"] > * { background: #1d4ed8 !important; }
-  .print-report > * { break-inside: avoid; }
-  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-}
-@media print {
-  html, body, body * { background-color: #fff !important; background-image: none !important; }
   body:has(.print-report) * { visibility: hidden; }
-  body:has(.print-report) .print-report, body:has(.print-report) .print-report * { visibility: visible; }
-  body:has(.print-report) .print-report:not(.no-print) { position: absolute; left: 0; top: 0; width: 100%; }
+  body:has(.print-report) .print-report, body:has(.print-report) .print-report * { visibility: visible; color: #111 !important; border-color: #ccc !important; }
+  body:has(.print-report) .print-report { position: absolute; left: 0; top: 0; width: 100%; }
+  .print-only { display: flex !important; }
   .print-report [role="progressbar"] { background-color: #e5e5e5 !important; }
   .print-report [role="progressbar"] > * { background-color: #1d4ed8 !important; }
+  .print-report > * { break-inside: avoid; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
