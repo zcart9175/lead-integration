@@ -43,6 +43,7 @@ import {
   inr,
   relTime,
 } from "./shared";
+import { AIQualifyPanel } from "./AIQualifyPanel";
 
 export function LeadDetailSheet({
   lead,
@@ -196,7 +197,12 @@ export function LeadDetailSheet({
               <TabsTrigger value="activity">Activity</TabsTrigger>
               <TabsTrigger value="actions">Actions</TabsTrigger>
               <TabsTrigger value="edit">Edit</TabsTrigger>
+              <TabsTrigger value="ai">AI Qualify</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="ai" className="mt-4">
+              <AIQualifyPanel lead={lead} notes={notes} comms={comms} run={run} />
+            </TabsContent>
 
             <TabsContent value="details" className="mt-4 space-y-3 text-sm">
               <Field label="Email" value={lead.email} />
