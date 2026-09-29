@@ -729,3 +729,11 @@
   .print-report > * { break-inside: avoid; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+@media print {
+  html, body, body * { background-color: #fff !important; background-image: none !important; }
+  body:has(.print-report) * { visibility: hidden; }
+  body:has(.print-report) .print-report, body:has(.print-report) .print-report * { visibility: visible; }
+  body:has(.print-report) .print-report:not(.no-print) { position: absolute; left: 0; top: 0; width: 100%; }
+  .print-report [role="progressbar"] { background-color: #e5e5e5 !important; }
+  .print-report [role="progressbar"] > * { background-color: #1d4ed8 !important; }
+}
