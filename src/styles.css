@@ -727,6 +727,7 @@
   .print-only { display: flex !important; }
   .print-report [role="progressbar"] { background-color: #e5e5e5 !important; }
   .print-report [role="progressbar"] > * { background-color: #1d4ed8 !important; }
-  .print-report > * { break-inside: avoid; }
+  .print-report *::before, .print-report *::after { background: none !important; opacity: 0 !important; }
+  .print-report .stat-tile, .print-report .rounded-md { break-inside: avoid; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
