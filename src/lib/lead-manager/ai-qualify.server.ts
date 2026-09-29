@@ -75,15 +75,15 @@ Base everything strictly on the provided information; if something is unknown, s
   const match = text.match(/\{[\s\S]*\}/);
   if (!match) throw new Error("AI returned an unreadable response.");
   const raw = JSON.parse(match[0]) as Record<string, unknown>;
-  const priority = PRIORITIES.includes(raw.priority as never)
-    ? (raw.priority as QualificationResult["priority"])
+  const priority = PRIORITIES.includes(raw["priority"] as never)
+    ? (raw["priority"] as QualificationResult["priority"])
     : "medium";
   return {
-    summary: String(raw.summary ?? ""),
+    summary: String(raw["summary"] ?? ""),
     priority,
-    priorityReason: String(raw.priorityReason ?? ""),
-    nextAction: String(raw.nextAction ?? ""),
-    nextActionTiming: String(raw.nextActionTiming ?? ""),
-    keySignals: Array.isArray(raw.keySignals) ? raw.keySignals.slice(0, 5).map(String) : [],
+    priorityReason: String(raw["priorityReason"] ?? ""),
+    nextAction: String(raw["nextAction"] ?? ""),
+    nextActionTiming: String(raw["nextActionTiming"] ?? ""),
+    keySignals: Array.isArray(raw["keySignals"]) ? raw["keySignals"].slice(0, 5).map(String) : [],
   };
 }
