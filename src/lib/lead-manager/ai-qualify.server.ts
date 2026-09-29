@@ -19,7 +19,7 @@ export async function runQualification(input: {
   notes: string;
   conversation: string;
 }): Promise<QualificationResult> {
-  const apiKey = process.env.LOVABLE_API_KEY;
+  const apiKey = process.env['LOVABLE_API_KEY'];
   if (!apiKey) throw new Error("AI is not configured for this app.");
 
   let runId: string | undefined;
